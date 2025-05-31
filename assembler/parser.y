@@ -2,6 +2,8 @@
 
 #include <stdio.h>
 
+#include "./parser_util/parser_util.h"
+
 int yyerror(char *errorMsg);
 int yylex(void);
 
@@ -74,8 +76,9 @@ int main(int argc, char** argv) {
     else {
         yyin = stdin;
     }
-
+    parserUtil_initialize();
     yyparse();
+    parserUtil_cleanup();
     return 0;
 }
 
