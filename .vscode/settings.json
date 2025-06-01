@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "string.h": "c",
-        "type_traits": "c",
-        "utility": "c"
-    }
-}
