@@ -217,7 +217,6 @@ parserUtil_handle_L_command(char* id, unsigned int line) {
 void
 parserUtil_cleanup() {
     symtab_cleanup(table);
-    symtab_print(table);
 }
 
 /* ------------------------ Static Definitions ------------------------ */
