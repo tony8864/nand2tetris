@@ -25,4 +25,4 @@ symbol_table.o: ${SYM_TAB_C}
 	gcc -c $< -o $@
 
 clean:
-	rm -f exe scanner.c ${OBJECTS} parser.tab.c parser.tab.h
+	rm -f exe scanner.c ${OBJECTS} parser.tab.c parser.tab.h *.hack

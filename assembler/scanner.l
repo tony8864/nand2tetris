@@ -12,7 +12,7 @@
 %option yylineno
 
 id              [A-Za-z_.$:][A-Za-z0-9_.$:]*
-integer         [0-9]+
+integer         -?[0-9]+
 space           [\t\n \t\v]
 linecomment     "//".*
 
