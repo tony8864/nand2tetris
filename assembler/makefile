@@ -1,28 +1,30 @@
-OBJECTS = scanner.o parser.o parser_util.o symbol_table.o
+CLFAGS = -Isrc -Isrc/parser_util -Isrc/symbol_table
 
-PARSER_UTIL_C = parser_util/parser_util.c
-SYM_TAB_C = symbol_table/symbol_table.c
+OBJECTS = build/parser.o build/scanner.o build/parser_util.o build/symbol_table.o
 
-exe: ${OBJECTS}
-	gcc -o exe ${OBJECTS}
+all: build/assembler
 
-scanner.o: scanner.c
-	gcc -c $< -o $@
+build/assembler: ${OBJECTS}
+	gcc -o build/assembler build/*.o
 
-scanner.c: scanner.l parser.tab.h
-	flex --outfile=scanner.c $<
+build/parser_util.o: src/parser_util/parser_util.c
+	gcc ${CLFAGS} -c $< -o $@
 
-parser.o: parser.tab.c parser_util.o
-	gcc -c $< -o $@
+build/symbol_table.o: src/symbol_table/symbol_table.c
+	gcc ${CLFAGS} -c $< -o $@
 
-parser.tab.c parser.tab.h: parser.y
-	bison -d $<
+build/parser.o: build/parser.tab.c
+	gcc ${CLFAGS} -c $< -o $@
 
-parser_util.o: ${PARSER_UTIL_C} symbol_table.o
-	gcc -c $< -o $@
+build/scanner.o: build/scanner.c
+	gcc ${CLFAGS} -c $< -o $@
 
-symbol_table.o: ${SYM_TAB_C}
-	gcc -c $< -o $@
+build/parser.tab.c build/parser.tab.h: src/parser.y
+	mkdir -p build
+	bison -d -o build/parser.tab.c $<
+
+build/scanner.c: src/scanner.l
+	flex --outfile=build/scanner.c $<
 
 clean:
-	rm -f exe scanner.c ${OBJECTS} parser.tab.c parser.tab.h *.hack
+	rm -rf build

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "./parser_util/parser_util.h"
+#include "parser_util.h"
 
 int yyerror(char *errorMsg);
 int yylex(void);
