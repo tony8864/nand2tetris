@@ -1,5 +1,4 @@
 .vscode/*
 
-assembler/tests
-
 **/build/
+**/tests/
