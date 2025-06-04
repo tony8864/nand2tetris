@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "parser_util.h"
 #include "common.h"
 
 int yyerror(char* errorMsg);
@@ -37,9 +38,9 @@ lines:  lines line
 line:   MEM_COMMAND
         ;
 
-MEM_COMMAND: MEM_OP SEGMENT INTEGER  { printf("handle mem op\n"); };
-
-MEM_OP: PUSH | POP;
+MEM_COMMAND:  POP SEGMENT INTEGER   { vmparserUtil_handleMemoryOperation(MEM_POP, $2, $3); }; 
+            | PUSH SEGMENT INTEGER  { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3); };
+            ; 
 
 %%
 
@@ -55,7 +56,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    vmparserUtil_openOutfile(argv[1]);
+
     yyparse();
+
+    vmparserUtil_cleanup();
 
     return 0;
 }

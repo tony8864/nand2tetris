@@ -22,11 +22,14 @@ linecomment     "//".*
 "push"  { return PUSH; }
 "pop"   { return POP; }
 
-"argument"  { yylval.segVal = SEG_ARGUMENT; return SEGMENT; }
 "local"     { yylval.segVal = SEG_LOCAL;    return SEGMENT; }
-"static"    { yylval.segVal = SEG_STATIC;   return SEGMENT; }
+"argument"  { yylval.segVal = SEG_ARGUMENT; return SEGMENT; }
 "this"      { yylval.segVal = SEG_THIS;     return SEGMENT; }
 "that"      { yylval.segVal = SEG_THAT;     return SEGMENT; }
+"pointer"   { yylval.segVal = SEG_POINTER;  return SEGMENT; }
+"temp"      { yylval.segVal = SEG_TEMP;     return SEGMENT; }
+"constant"  { yylval.segVal = SEG_CONSTANT; return SEGMENT; }
+"static"    { yylval.segVal = SEG_STATIC;   return SEGMENT; }
 
 {linecomment}   { }
 {space}         { }
