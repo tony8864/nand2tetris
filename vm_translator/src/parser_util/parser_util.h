@@ -12,6 +12,9 @@ void
 vmparserUtil_handleMemoryOperation(MemOp_T op, Segment_T seg, int index);
 
 void
+vmparserUtil_handleComputeOperation(ComputeCommand_T cmd);
+
+void
 vmparserUtil_cleanup();
 
 #endif

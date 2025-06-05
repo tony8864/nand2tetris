@@ -1,5 +1,5 @@
-#ifndef CODEGEN_H
-#define CODEGEN_H
+#ifndef MEM_CODEGEN_H
+#define MEM_CODEGEN_H
 
 #include <stdio.h>
 

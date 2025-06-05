@@ -14,20 +14,18 @@ extern int yylineno;
 #define emit_increment_sp()                                    \
                                 emit("// SP++\n");             \
                                 emit("@SP\n");                 \
-                                emit("M=M+1\n\n")
+                                emit("M=M+1\n\n");
 
 #define emit_decrement_sp()                                    \
                                 emit("// SP--\n");             \
                                 emit("@SP\n");                 \
-                                emit("M=M-1\n\n")
+                                emit("M=M-1\n\n");
 
 #define emit_push_d_to_stack()                                 \
                                 emit("// mem[SP] = D\n");      \
                                 emit("@SP\n");                 \
                                 emit("A=M\n");                 \
-                                emit("M=D\n\n")
-
-
+                                emit("M=D\n\n");
 
 static void codegen_pop_local   (FILE* out, int index);
 static void codegen_pop_argument(FILE* out, int index);

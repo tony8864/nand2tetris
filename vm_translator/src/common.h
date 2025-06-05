@@ -14,6 +14,18 @@ typedef enum {
 } Segment_T;
 
 typedef enum {
+    ADD_CMD,
+    SUB_CMD,
+    NEG_CMD,
+    EQ_CMD,
+    GT_CMD,
+    LT_CMD,
+    AND_CMD,
+    OR_CMD,
+    NOT_CMD
+} ComputeCommand_T;
+
+typedef enum {
     MEM_POP,
     MEM_PUSH
 } MemOp_T;

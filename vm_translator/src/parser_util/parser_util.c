@@ -1,5 +1,7 @@
 #include "parser_util.h"
+
 #include "memory_codegen.h"
+#include "compute_codegen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,6 +26,11 @@ vmparserUtil_openOutfile(char* vmfilename) {
 void
 vmparserUtil_handleMemoryOperation(MemOp_T op, Segment_T seg, int index) {
     generate_memory_operation(outFile, op, seg, index);
+}
+
+void
+vmparserUtil_handleComputeOperation(ComputeCommand_T cmd) {
+    generate_compute_operation(outFile, cmd);
 }
 
 void

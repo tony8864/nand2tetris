@@ -3,29 +3,32 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "parser_util.h"
 #include "common.h"
+#include "parser_util.h"
 
 int yyerror(char* errorMsg);
 int yylex(void);
 
 extern FILE*    yyin;
 extern int      yylineno;
+
 %}
 
 
 %start program
 
 %union {
-    int     intVal;
-    char*   strVal;
-    Segment_T segVal;
+    int                 intVal;
+    char*               strVal;
+    Segment_T           segVal;
+    ComputeCommand_T    computeVal;
 }
 
 %token PUSH POP
 
-%token<segVal> SEGMENT
-%token<intVal> INTEGER
+%token<intVal>      INTEGER
+%token<segVal>      SEGMENT
+%token<computeVal>  COMPUTE_CMD
 
 %%
 
@@ -36,11 +39,15 @@ lines:  lines line
         ;
     
 line:   MEM_COMMAND
+        | CMP_COMMAND
         ;
 
 MEM_COMMAND:  POP SEGMENT INTEGER   { vmparserUtil_handleMemoryOperation(MEM_POP, $2, $3); }; 
             | PUSH SEGMENT INTEGER  { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3); };
             ; 
+
+CMP_COMMAND: COMPUTE_CMD { vmparserUtil_handleComputeOperation($1); }
+
 
 %%
 
