@@ -4,6 +4,8 @@
 #include <string.h>
 
 #include "common.h"
+
+#include "file_util.h"
 #include "parser_util.h"
 
 int yyerror(char* errorMsg);
@@ -63,10 +65,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    vmparserUtil_openOutfile(argv[1]);
-
+    vmparserUtil_open_out_file(argv[1]);
     yyparse();
-
     vmparserUtil_cleanup();
 
     return 0;

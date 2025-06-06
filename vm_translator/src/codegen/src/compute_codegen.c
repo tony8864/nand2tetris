@@ -57,7 +57,7 @@
                                 emit("@SP\n");              \
                                 emit("AM=M-1\n");           \
                                 emit("D=M-D\n\n");          \
-                                emit("// if (x - y < 0) goto TRUE\n"); \
+                                emit("// if (cond) goto TRUE\n"); \
                                 emit("@TRUE$%d\n", id);     \
 
 #define emit_after_jump()                                   \

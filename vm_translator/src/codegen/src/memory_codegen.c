@@ -1,5 +1,4 @@
 #include "memory_codegen.h"
-#include "parser_util.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -59,9 +58,6 @@ writePushPointer(FILE* out, char* segment);
 
 static char*
 make_combined_name(char* base, int index);
-
-static char*
-get_prefix_before_dot(char* input);
 
 static char*
 get_static_variable_name(int index);
@@ -332,6 +328,12 @@ writePushPointer(FILE* out, char* segment) {
 }
 
 static char*
+get_static_variable_name(int index) {
+    char* varName = make_combined_name(vm_context.input_filename, index);
+    return varName;
+}
+
+static char*
 make_combined_name(char* base, int index) {
 
     int size = snprintf(NULL, 0, "%s.%d", base, index) + 1;
@@ -344,34 +346,6 @@ make_combined_name(char* base, int index) {
 
     snprintf(name, size, "%s.%d", base, index);
     return name;
-}
-
-static char*
-get_prefix_before_dot(char* input) {
-    const char* dot = strrchr(input, '.');
-
-    if (!dot) {
-        return strdup(input);
-    }
-
-    size_t len = dot - input;
-    char* result = malloc(len + 1);
-    if (!result) {
-        perror("malloc");
-        exit(1);
-    }
-
-    strncpy(result, input, len);
-    result[len] = '\0';
-    return result;
-}
-
-static char*
-get_static_variable_name(int index) {
-    char* filenamePrefix = get_prefix_before_dot(asm_filename);
-    char* varName = make_combined_name(filenamePrefix, index);
-    free(filenamePrefix);
-    return varName;
 }
 
 static void

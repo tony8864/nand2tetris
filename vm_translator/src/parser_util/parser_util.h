@@ -3,10 +3,8 @@
 
 #include "common.h"
 
-extern char* asm_filename;
-
 void
-vmparserUtil_openOutfile(char* filename);
+vmparserUtil_open_out_file(char* filename);
 
 void
 vmparserUtil_handleMemoryOperation(MemOp_T op, Segment_T seg, int index);

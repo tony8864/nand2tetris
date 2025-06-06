@@ -1,10 +1,12 @@
-CLFAGS = -Isrc -Isrc/parser_util -Isrc/codegen/include
+CLFAGS = -Isrc -Isrc/parser_util -Isrc/codegen/include -Isrc/file_util
 
 OBJECTS = 	build/parser.o \
 			build/scanner.o \
 			build/parser_util.o \
 			build/memory_codegen.o \
-			build/compute_codegen.o
+			build/compute_codegen.o \
+			build/file_util.o \
+			build/common.o
 
 all: build/vmtranslator
 
@@ -15,6 +17,12 @@ build/parser.o: build/parser.tab.c
 	gcc ${CLFAGS} -c $< -o $@
 
 build/scanner.o: build/scanner.c
+	gcc ${CLFAGS} -c $< -o $@
+
+build/common.o: src/common.c
+	gcc ${CLFAGS} -c $< -o $@
+
+build/file_util.o: src/file_util/file_util.c
 	gcc ${CLFAGS} -c $< -o $@
 
 build/memory_codegen.o: src/codegen/src/memory_codegen.c

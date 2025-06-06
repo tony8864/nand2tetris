@@ -1,6 +1,15 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <stdio.h>
+
+typedef struct {
+    char*   input_filename;
+    FILE*   output_file;
+} VMContext;
+
+extern VMContext vm_context;
+
 typedef enum {
     SEG_LOCAL,
     SEG_ARGUMENT,
