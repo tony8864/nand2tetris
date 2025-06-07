@@ -33,11 +33,17 @@ typedef enum {
     AND_CMD,
     OR_CMD,
     NOT_CMD
-} ComputeCommand_T;
+} ComputeOp_T;
 
 typedef enum {
     MEM_POP,
     MEM_PUSH
 } MemOp_T;
+
+typedef enum {
+    SIMPLE_LABEL,
+    GOTO_LABEL,
+    IFGOTO_LABEL
+} LabelOp_T;
 
 #endif

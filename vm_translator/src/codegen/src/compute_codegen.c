@@ -107,7 +107,7 @@ compute_codegen_func_t computeCodegenFuncs[] = {
 };
 
 void
-generate_compute_operation(FILE* out, ComputeCommand_T cmd) {
+generate_compute_operation(FILE* out, ComputeOp_T cmd) {
     (*computeCodegenFuncs[cmd])(out);
 }
 

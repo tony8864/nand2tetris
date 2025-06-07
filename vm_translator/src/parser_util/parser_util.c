@@ -2,6 +2,8 @@
 
 #include "memory_codegen.h"
 #include "compute_codegen.h"
+#include "label_codegen.h"
+
 #include "file_util.h"
 
 #include <stdio.h>
@@ -44,7 +46,9 @@ vmparserUtil_combine_asm_files(char* filename) {
     FILE*  dest     = get_asm_file(filename);
 
     for (int i = 0; i < count; i++) {
-        merge_and_delete_asm_file(files[i], dest);
+        if (fileUtil_has_asm_extension(files[i])) {
+            merge_and_delete_asm_file(files[i], dest);
+        }
         free(files[i]);
     }
 
@@ -58,8 +62,13 @@ vmparserUtil_handleMemoryOperation(MemOp_T op, Segment_T seg, int index) {
 }
 
 void
-vmparserUtil_handleComputeOperation(ComputeCommand_T cmd) {
-    generate_compute_operation(vm_context.output_file, cmd);
+vmparserUtil_handleComputeOperation(ComputeOp_T op) {
+    generate_compute_operation(vm_context.output_file, op);
+}
+
+void
+vmparserUtil_handleLabelOperation(LabelOp_T op, char* label) {
+    generate_label_operation(vm_context.output_file, op, label);
 }
 
 void
@@ -81,10 +90,8 @@ get_asm_file(char* filename) {
 
 static void
 merge_and_delete_asm_file(char* filename, FILE* dest) {
-    if (fileUtil_has_asm_extension(filename)) {
-        fileUtil_append_file_contents(filename, dest);
-        checked_remove_file(filename);
-    }
+    fileUtil_append_file_contents(filename, dest);
+    checked_remove_file(filename);
 }
 
 static void

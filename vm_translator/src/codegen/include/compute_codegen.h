@@ -6,6 +6,6 @@
 #include "common.h"
 
 void
-generate_compute_operation(FILE* out, ComputeCommand_T cmd);
+generate_compute_operation(FILE* out, ComputeOp_T op);
 
 #endif

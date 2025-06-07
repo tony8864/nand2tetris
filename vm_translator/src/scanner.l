@@ -13,14 +13,19 @@
 %option noyywrap
 %option yylineno
 
+id              [A-Za-z_\.\$:][A-Za-z0-9_\.\$:]*
 integer         -?[0-9]+
 space           [\t\n \t\v]
 linecomment     "//".*
 
 %%
 
-"push"  { return PUSH; }
-"pop"   { return POP; }
+"push"  { return PUSH;  }
+"pop"   { return POP;   }
+
+"label"     { yylval.labelVal = SIMPLE_LABEL;   return LABEL_CMD; }
+"goto"      { yylval.labelVal = GOTO_LABEL;     return LABEL_CMD; }
+"if-goto"   { yylval.labelVal = IFGOTO_LABEL;   return LABEL_CMD; }
 
 "local"     { yylval.segVal = SEG_LOCAL;    return SEGMENT; }
 "argument"  { yylval.segVal = SEG_ARGUMENT; return SEGMENT; }
@@ -44,7 +49,8 @@ linecomment     "//".*
 {linecomment}   { }
 {space}         { }
 
-{integer}       { yylval.intVal = atoi(yytext); return INTEGER; }
+{id}            { yylval.strVal = strdup(yytext);   return IDENTIFIER; }
+{integer}       { yylval.intVal = atoi(yytext);     return INTEGER; }
 
 .               { printf("Error at line %d: Did not find any match for \"%s\".\n", yylineno, yytext); exit(1); }
 

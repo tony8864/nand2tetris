@@ -28,14 +28,18 @@ parse_vm_file(char* filename);
     int                 intVal;
     char*               strVal;
     Segment_T           segVal;
-    ComputeCommand_T    computeVal;
+    ComputeOp_T         computeVal;
+    LabelOp_T           labelVal;
 }
 
 %token PUSH POP
 
+%token<strVal>      IDENTIFIER
 %token<intVal>      INTEGER
+
 %token<segVal>      SEGMENT
 %token<computeVal>  COMPUTE_CMD
+%token<labelVal>    LABEL_CMD
 
 %%
 
@@ -47,14 +51,16 @@ lines:  lines line
     
 line:   MEM_COMMAND
         | CMP_COMMAND
+        | LABEL_COMMAND
         ;
 
-MEM_COMMAND:  POP SEGMENT INTEGER   { vmparserUtil_handleMemoryOperation(MEM_POP, $2, $3); }; 
-            | PUSH SEGMENT INTEGER  { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3); };
+MEM_COMMAND:  POP SEGMENT INTEGER   { vmparserUtil_handleMemoryOperation(MEM_POP, $2, $3); }
+            | PUSH SEGMENT INTEGER  { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3); }
             ; 
 
-CMP_COMMAND: COMPUTE_CMD { vmparserUtil_handleComputeOperation($1); }
+CMP_COMMAND: COMPUTE_CMD    { vmparserUtil_handleComputeOperation($1); }
 
+LABEL_COMMAND: LABEL_CMD IDENTIFIER { vmparserUtil_handleLabelOperation($1, $2); }
 
 %%
 
