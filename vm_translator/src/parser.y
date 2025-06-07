@@ -68,6 +68,7 @@ int main(int argc, char** argv) {
 
     if (isDirectory) {
         parse_vm_folder(argv[1]);
+        vmparserUtil_combine_asm_files(argv[1]);
     }
     else {
         parse_vm_file(argv[1]);

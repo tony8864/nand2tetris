@@ -27,4 +27,13 @@ fileUtil_get_files(char* dir_path, int* count);
 unsigned
 fileUtil_has_vm_extension(char* filename);
 
+unsigned
+fileUtil_has_asm_extension(char* filename);
+
+char*
+fileUtil_strip_last_slash(char* filename);
+
+void
+fileUtil_append_file_contents(char* src_path, FILE* dest_file);
+
 #endif

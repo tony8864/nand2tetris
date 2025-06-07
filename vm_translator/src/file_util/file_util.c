@@ -125,7 +125,15 @@ fileUtil_get_files(char* path, int* count) {
         }
 
         char fullpath[1024];
-        snprintf(fullpath, sizeof(fullpath), "%s%s", path, entry->d_name);
+
+        snprintf(
+                    fullpath,
+                    sizeof(fullpath),
+                    "%s%s%s",
+                    path,
+                    (path[strlen(path) - 1] == '/') ? "" : "/",
+                    entry->d_name
+                );
 
         struct stat st;
         if (stat(fullpath, &st) == 0 && S_ISREG(st.st_mode)) {
@@ -143,4 +151,49 @@ fileUtil_has_vm_extension(char* filename) {
 
     int len = strlen(filename);
     return (len >= 3 && strcmp(filename + len - 3, ".vm") == 0);
+}
+
+unsigned
+fileUtil_has_asm_extension(char* filename) {
+    assert(filename);
+
+    int len = strlen(filename);
+    return (len >= 4 && strcmp(filename + len - 4, ".asm") == 0);
+}
+
+char*
+fileUtil_strip_last_slash(char* filename) {
+    int size = strlen(filename);
+
+    if (size == 0 || filename[size - 1] != '/') {
+        return strdup(filename);
+    }
+
+    char* result = malloc(size);
+    if (!result) {
+        perror("malloc");
+        exit(1);
+    }
+
+    strncpy(result, filename, size - 1);
+    result[size - 1] = '\0';
+    return result;
+}
+
+void
+fileUtil_append_file_contents(char* src_path, FILE* dest_file) {
+    FILE* src = fopen(src_path, "r");
+    if (!src) {
+        perror("fopen");
+        exit(1);
+    }
+
+    char buffer[1024];
+    int bytes;
+
+    while ((bytes = fread(buffer, 1, sizeof(buffer), src)) > 0) {
+        fwrite(buffer, 1, bytes, dest_file);
+    }
+
+    fclose(src);
 }

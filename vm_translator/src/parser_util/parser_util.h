@@ -7,6 +7,9 @@ void
 vmparserUtil_open_out_file(char* filename);
 
 void
+vmparserUtil_combine_asm_files(char* filename);
+
+void
 vmparserUtil_handleMemoryOperation(MemOp_T op, Segment_T seg, int index);
 
 void
