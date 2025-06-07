@@ -1,3 +1,4 @@
+#include "codegen_util.h"
 #include "memory_codegen.h"
 
 #include <stdlib.h>
@@ -9,7 +10,7 @@ extern int yylineno;
 #define FUNC_INDEX(op, seg)     ((op) * MEMORY_SEGMENT_COUNT + (seg))
 #define MEMORY_SEGMENT_COUNT    8
 
-#define emit(...) fprintf(out, __VA_ARGS__)
+#define emit(...)               tracked_emit(out, __VA_ARGS__)
 #define emit_increment_sp()                                    \
                                 emit("// SP++\n");             \
                                 emit("@SP\n");                 \

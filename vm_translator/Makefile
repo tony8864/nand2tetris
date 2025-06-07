@@ -3,6 +3,7 @@ CLFAGS = -Isrc -Isrc/parser_util -Isrc/codegen/include -Isrc/file_util
 OBJECTS = 	build/parser.o \
 			build/scanner.o \
 			build/parser_util.o \
+			build/codegen_util.o \
 			build/memory_codegen.o \
 			build/compute_codegen.o \
 			build/file_util.o \
@@ -23,6 +24,9 @@ build/common.o: src/common.c
 	gcc ${CLFAGS} -c $< -o $@
 
 build/file_util.o: src/file_util/file_util.c
+	gcc ${CLFAGS} -c $< -o $@
+
+build/codegen_util.o: src/codegen/src/codegen_util.c
 	gcc ${CLFAGS} -c $< -o $@
 
 build/memory_codegen.o: src/codegen/src/memory_codegen.c

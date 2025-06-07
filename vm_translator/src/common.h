@@ -4,8 +4,9 @@
 #include <stdio.h>
 
 typedef struct {
-    char*   input_filename;
-    FILE*   output_file;
+    char*       input_filename;
+    FILE*       output_file;
+    unsigned    instruction_count;
 } VMContext;
 
 extern VMContext vm_context;

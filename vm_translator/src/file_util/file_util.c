@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 char*
 fileUtil_get_basename(char* filepath) {
@@ -59,4 +61,86 @@ fileUtil_close_and_free_filename(FILE* file, char* filename) {
     assert(filename && file);
     fclose(file);
     free(filename);
+}
+
+unsigned
+fileUtil_isDirectory(char* path) {
+    struct stat stats;
+
+    stat(path, &stats);
+
+    return S_ISDIR(stats.st_mode);
+}
+
+void
+fileUtil_list_files_in_directory(char* path) {
+    DIR* dir = opendir(path);
+
+    if (!dir) {
+        perror("opendir");
+        exit(1);
+    }
+
+    struct dirent* entry;
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char fullpath[1024];
+        snprintf(fullpath, sizeof(fullpath), "%s%s", path, entry->d_name);
+
+        struct stat st;
+        if (stat(fullpath, &st) == 0 && S_ISREG(st.st_mode)) {
+            printf("Found file: %s\n", fullpath);
+        }
+    }
+
+    closedir(dir);
+}
+
+char**
+fileUtil_get_files(char* path, int* count) {
+    DIR* dir = opendir(path);
+
+    if (!dir) {
+        perror("opendir");
+        exit(1);
+    }
+
+    struct dirent* entry;
+
+    char** file_list = malloc(sizeof(char*) * 10);
+    int size = 0;
+
+    if (!file_list) {
+        perror("malloc");
+        exit(1);
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+            continue;
+        }
+
+        char fullpath[1024];
+        snprintf(fullpath, sizeof(fullpath), "%s%s", path, entry->d_name);
+
+        struct stat st;
+        if (stat(fullpath, &st) == 0 && S_ISREG(st.st_mode)) {
+            file_list[size++] = strdup(fullpath);
+        }
+    }
+    closedir(dir);
+    *count = size;
+    return file_list;
+}
+
+unsigned
+fileUtil_has_vm_extension(char* filename) {
+    assert(filename);
+
+    int len = strlen(filename);
+    return (len >= 3 && strcmp(filename + len - 3, ".vm") == 0);
 }

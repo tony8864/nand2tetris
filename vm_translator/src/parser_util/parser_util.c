@@ -11,6 +11,12 @@
 
 void
 vmparserUtil_open_out_file(char* filename) {
+
+    if (!fileUtil_has_vm_extension(filename)) {
+        printf("File %s is not a VM file.\n", filename);
+        exit(1);
+    }
+
     char* base_filename = fileUtil_get_basename(filename);
     char* asm_filename = fileUtil_append_asm(base_filename);
     
@@ -33,4 +39,5 @@ vmparserUtil_handleComputeOperation(ComputeCommand_T cmd) {
 void
 vmparserUtil_cleanup() {
     fileUtil_close_and_free_filename(vm_context.output_file, vm_context.input_filename);
+    printf("total instr: %d\n", vm_context.instruction_count);
 }

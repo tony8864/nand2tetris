@@ -1,9 +1,10 @@
+#include "codegen_util.h"
 #include "compute_codegen.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 
-#define emit(...) fprintf(out, __VA_ARGS__)
+#define emit(...)               tracked_emit(out, __VA_ARGS__)
 #define emit_increment_sp()                                    \
                                 emit("// SP++\n");             \
                                 emit("@SP\n");                 \
