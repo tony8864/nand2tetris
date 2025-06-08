@@ -19,6 +19,15 @@ void
 vmparserUtil_handleLabelOperation(LabelOp_T cmd, char* label);
 
 void
+vmparserUtil_handleFunctionOperation(char* func, int args);
+
+void
+vmparserUtil_handleCallOperation(char* func, int locals);
+
+void
+vmparserUtil_handleReturnOperation();
+
+void
 vmparserUtil_cleanup();
 
 #endif

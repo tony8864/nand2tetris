@@ -33,6 +33,7 @@ parse_vm_file(char* filename);
 }
 
 %token PUSH POP
+%token FUNCTION CALL RETURN
 
 %token<strVal>      IDENTIFIER
 %token<intVal>      INTEGER
@@ -49,18 +50,21 @@ lines:  lines line
         | %empty
         ;
     
-line:   MEM_COMMAND
-        | CMP_COMMAND
+line:   MEMORY_COMMAND
+        | COMPUTE_COMMAND
         | LABEL_COMMAND
+        | FUNCTION_COMMAND
+        | CALL_COMMAND
+        | RETURN_COMMAND
         ;
 
-MEM_COMMAND:  POP SEGMENT INTEGER   { vmparserUtil_handleMemoryOperation(MEM_POP, $2, $3); }
-            | PUSH SEGMENT INTEGER  { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3); }
-            ; 
-
-CMP_COMMAND: COMPUTE_CMD    { vmparserUtil_handleComputeOperation($1); }
-
-LABEL_COMMAND: LABEL_CMD IDENTIFIER { vmparserUtil_handleLabelOperation($1, $2); }
+MEMORY_COMMAND  :   POP SEGMENT INTEGER         { vmparserUtil_handleMemoryOperation(MEM_POP, $2, $3);}
+                    |PUSH SEGMENT INTEGER       { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3);}; 
+COMPUTE_COMMAND :   COMPUTE_CMD                 { vmparserUtil_handleComputeOperation($1);}
+LABEL_COMMAND   :   LABEL_CMD IDENTIFIER        { vmparserUtil_handleLabelOperation($1, $2);    free($2);}
+FUNCTION_COMMAND:   FUNCTION IDENTIFIER INTEGER { vmparserUtil_handleFunctionOperation($2, $3); free($2);}
+CALL_COMMAND    :   CALL IDENTIFIER INTEGER     { vmparserUtil_handleCallOperation($2, $3);     free($2);}
+RETURN_COMMAND  :   RETURN                      { vmparserUtil_handleReturnOperation();}
 
 %%
 

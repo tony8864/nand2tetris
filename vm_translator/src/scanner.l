@@ -27,6 +27,10 @@ linecomment     "//".*
 "goto"      { yylval.labelVal = GOTO_LABEL;     return LABEL_CMD; }
 "if-goto"   { yylval.labelVal = IFGOTO_LABEL;   return LABEL_CMD; }
 
+"function"  { return FUNCTION;}
+"call"      { return CALL;    }
+"return"    { return RETURN;  }
+
 "local"     { yylval.segVal = SEG_LOCAL;    return SEGMENT; }
 "argument"  { yylval.segVal = SEG_ARGUMENT; return SEGMENT; }
 "this"      { yylval.segVal = SEG_THIS;     return SEGMENT; }

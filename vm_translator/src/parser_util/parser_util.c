@@ -3,6 +3,7 @@
 #include "memory_codegen.h"
 #include "compute_codegen.h"
 #include "label_codegen.h"
+#include "function_codegen.h"
 
 #include "file_util.h"
 
@@ -69,6 +70,21 @@ vmparserUtil_handleComputeOperation(ComputeOp_T op) {
 void
 vmparserUtil_handleLabelOperation(LabelOp_T op, char* label) {
     generate_label_operation(vm_context.output_file, op, label);
+}
+
+void
+vmparserUtil_handleFunctionOperation(char* func, int args) {
+    generate_function_operation(vm_context.output_file, func, args);
+}
+
+void
+vmparserUtil_handleCallOperation(char* func, int locals) {
+    generate_call_operation(vm_context.output_file, func, locals);
+}
+
+void
+vmparserUtil_handleReturnOperation() {
+    generate_return_operation(vm_context.output_file);
 }
 
 void

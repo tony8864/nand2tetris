@@ -7,6 +7,7 @@ OBJECTS = 	build/parser.o \
 			build/memory_codegen.o \
 			build/compute_codegen.o \
 			build/label_codegen.o \
+			build/function_codegen.o \
 			build/file_util.o \
 			build/common.o
 
@@ -28,6 +29,9 @@ build/file_util.o: src/file_util/file_util.c
 	gcc ${CLFAGS} -c $< -o $@
 
 build/codegen_util.o: src/codegen/src/codegen_util.c
+	gcc ${CLFAGS} -c $< -o $@
+
+build/function_codegen.o: src/codegen/src/function_codegen.c
 	gcc ${CLFAGS} -c $< -o $@
 
 build/label_codegen.o: src/codegen/src/label_codegen.c

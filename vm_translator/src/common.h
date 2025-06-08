@@ -7,6 +7,8 @@ typedef struct {
     char*       input_filename;
     FILE*       output_file;
     unsigned    instruction_count;
+    char*       current_function_name;
+    unsigned    return_address_count;
 } VMContext;
 
 extern VMContext vm_context;
