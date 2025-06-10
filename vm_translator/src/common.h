@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 typedef struct {
+    char*       output_folder_name;
     char*       input_filename;
     FILE*       output_file;
     unsigned    instruction_count;

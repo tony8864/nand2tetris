@@ -13,6 +13,9 @@ void
 vmparserUtil_append_bootstrap_code(char* filename);
 
 void
+vmparserUtil_write_to_folder(char* filename);
+
+void
 vmparserUtil_handleMemoryOperation(MemOp_T op, Segment_T seg, int index);
 
 void

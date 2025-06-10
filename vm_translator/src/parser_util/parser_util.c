@@ -83,18 +83,66 @@ vmparserUtil_append_bootstrap_code(char* filename) {
     fclose(existing_output_file);
 
 
-    if (!rename("temp", output_filename)) {
+    if (rename("temp", output_filename) != 0) {
         perror("rename");
-        exit(1);
-    }
-
-    if (!remove(output_filename)) {
-        perror("remove");
         exit(1);
     }
 
     free(stripped_slash);
     free(output_filename);
+}
+
+void
+vmparserUtil_write_to_folder(char* filename) {
+    char* stripped_slash = fileUtil_strip_last_slash(filename);
+    char* output_filename = fileUtil_append_asm(stripped_slash);
+
+    FILE* existing_output_file = fopen(output_filename, "r");
+    if (!existing_output_file) {
+        perror("fopen");
+        exit(1);
+    }
+
+    char* output_folder_name = fileUtil_strip_last_slash(vm_context.output_folder_name);
+    unsigned isDirectory = fileUtil_isDirectory(output_folder_name);
+
+    if (!isDirectory) {
+        printf("Error: Please specify a valid folder path.\n");
+        exit(1);
+    }
+
+    size_t dest_len = strlen(output_folder_name) + strlen(output_filename) + 2;
+    char* dest_path = malloc(dest_len);
+    if (!dest_path) {
+        perror("malloc");
+        exit(1);
+    }
+    snprintf(dest_path, dest_len, "%s/%s", output_folder_name, output_filename);
+
+    FILE* dest_file = fopen(dest_path, "w");
+    if (!dest_file) {
+        perror("fopen (dest)");
+        free(dest_path);
+        exit(1);
+    }
+
+    char buffer[1024];
+    size_t bytes;
+    while ((bytes = fread(buffer, 1, sizeof(buffer), existing_output_file)) > 0) {
+        fwrite(buffer, 1, bytes, dest_file);
+    }
+
+    if (remove(output_filename) != 0) {
+        perror("remove");
+        exit(1);
+    }
+
+    fclose(existing_output_file);
+    fclose(dest_file);
+    free(dest_path);
+    free(stripped_slash);
+    free(output_filename);
+    free(output_folder_name);
 }
 
 void
