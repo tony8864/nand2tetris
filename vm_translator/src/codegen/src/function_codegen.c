@@ -72,6 +72,17 @@ static char*
 int_to_str(int n);
 
 void
+generate_bootstrap_code(FILE* out) {
+    emit("// bootstrap code\n");
+    emit("@256\n");
+    emit("D=A\n");
+    emit("@0\n");
+    emit("M=D\n\n");
+
+    generate_call_operation(out, "Sys.init", 0);
+}
+
+void
 generate_function_operation(FILE* out, char* func, unsigned locals) {
     if (vm_context.current_function_name != NULL) {
         free(vm_context.current_function_name);

@@ -4,6 +4,9 @@
 #include <stdio.h>
 
 void
+generate_bootstrap_code(FILE* out);
+
+void
 generate_function_operation(FILE* out, char* func, unsigned locals);
 
 void

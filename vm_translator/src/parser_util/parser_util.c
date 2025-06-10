@@ -4,6 +4,7 @@
 #include "compute_codegen.h"
 #include "label_codegen.h"
 #include "function_codegen.h"
+#include "codegen_util.h"
 
 #include "file_util.h"
 
@@ -58,6 +59,45 @@ vmparserUtil_combine_asm_files(char* filename) {
 }
 
 void
+vmparserUtil_append_bootstrap_code(char* filename) {
+    char* stripped_slash = fileUtil_strip_last_slash(filename);
+    char* output_filename = fileUtil_append_asm(stripped_slash);
+
+    FILE* temp_file = fileUtil_open_file("temp");
+    generate_bootstrap_code(temp_file);
+
+    FILE* existing_output_file = fopen(output_filename, "r");
+    if (!existing_output_file) {
+        perror("fopen");
+        exit(1);
+    }
+
+    char buffer[1024];
+    size_t bytes;
+
+    while ((bytes = fread(buffer, 1, sizeof(buffer), existing_output_file)) > 0) {
+        fwrite(buffer, 1, bytes, temp_file);
+    }
+
+    fclose(temp_file);
+    fclose(existing_output_file);
+
+
+    if (!rename("temp", output_filename)) {
+        perror("rename");
+        exit(1);
+    }
+
+    if (!remove(output_filename)) {
+        perror("remove");
+        exit(1);
+    }
+
+    free(stripped_slash);
+    free(output_filename);
+}
+
+void
 vmparserUtil_handleMemoryOperation(MemOp_T op, Segment_T seg, int index) {
     generate_memory_operation(vm_context.output_file, op, seg, index);
 }
@@ -89,7 +129,8 @@ vmparserUtil_handleReturnOperation() {
 
 void
 vmparserUtil_cleanup() {
-    fileUtil_close_and_free_filename(vm_context.output_file, vm_context.input_filename);
+    free(vm_context.input_filename);
+    fclose(vm_context.output_file);
 }
 
 static FILE*

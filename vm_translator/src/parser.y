@@ -59,9 +59,12 @@ line:   MEMORY_COMMAND
         ;
 
 MEMORY_COMMAND  :   POP SEGMENT INTEGER         { vmparserUtil_handleMemoryOperation(MEM_POP, $2, $3);}
-                    |PUSH SEGMENT INTEGER       { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3);}; 
+                    |PUSH SEGMENT INTEGER       { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3);};
+
 COMPUTE_COMMAND :   COMPUTE_CMD                 { vmparserUtil_handleComputeOperation($1);}
+
 LABEL_COMMAND   :   LABEL_CMD IDENTIFIER        { vmparserUtil_handleLabelOperation($1, $2);    free($2);}
+
 FUNCTION_COMMAND:   FUNCTION IDENTIFIER INTEGER { vmparserUtil_handleFunctionOperation($2, $3); free($2);}
 CALL_COMMAND    :   CALL IDENTIFIER INTEGER     { vmparserUtil_handleCallOperation($2, $3);     free($2);}
 RETURN_COMMAND  :   RETURN                      { vmparserUtil_handleReturnOperation();}
@@ -84,6 +87,8 @@ int main(int argc, char** argv) {
         parse_vm_file(argv[1]);
     }
 
+    vmparserUtil_append_bootstrap_code(argv[1]);
+
     return 0;
 }
 
@@ -91,7 +96,7 @@ static void
 parse_vm_folder(char* path) {
     int count;
     char** files = fileUtil_get_files(path, &count);
-    
+  
     for (int i = 0; i < count; i++) {
         parse_vm_file(files[i]);
         free(files[i]);
@@ -103,16 +108,16 @@ parse_vm_folder(char* path) {
 static void
 parse_vm_file(char* filename) {
 
-    if ((yyin = fopen(filename, "r")) != NULL) {
-        if (!yyin) {
-            perror("fopen");
-            exit(1);
-        }
+    yyin = fopen(filename, "r");
+    if (!yyin) {
+        perror("fopen");
+        exit(1);
     }
     
     vmparserUtil_open_out_file(filename);
     yyparse();
     vmparserUtil_cleanup();
+
     fclose(yyin);
 }
 

@@ -18,14 +18,3 @@ tracked_emit(FILE* out, const char* fmt, ...) {
     vfprintf(out, fmt, args);
     va_end(args);
 }
-
-void
-generate_bootstrap_code(FILE* out) {
-    emit("// bootstrap code\n");
-    emit("@256\n");
-    emit("D=A\n");
-    emit("@0\n");
-    emit("M=D\n\n");
-    emit("@Sys.init\n");
-    emit("0;JMP\n\n");
-}
