@@ -97,17 +97,16 @@ create_unique_label_func_absent(char* label) {
 
 static char*
 create_unique_label_func_present(char* label) {
-    char* file = vm_context.input_filename;
     char* func = vm_context.current_function_name;
 
-    size_t  size    = strlen(file) + strlen(func) + strlen(label) + 1 + 1 + 1; // '.' and '$' and '\0' chars
+    size_t  size    = strlen(func) + strlen(label) + 1 + 1; // '$' and '\0' chars
     char*   unique  = malloc(sizeof(char) * size);
     if (!unique) {
         perror("malloc");
         exit(1);
     }
 
-    sprintf(unique, "%s.%s$%s", file, func, label);
+    sprintf(unique, "%s$%s", func, label);
 
     return unique;
 }

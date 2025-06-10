@@ -55,8 +55,15 @@
                     emit("// inject return address\n"); \
                     emit("(%s)\n\n", ret);
 
-static char*
-create_unique_func_name(char* func);
+#define restore_segment(seg, offset) \
+                    emit("// restore segment %s\n", seg);   \
+                    emit("@R13\n");                         \
+                    emit("D=M\n");                          \
+                    emit("@%d\n", offset);                  \
+                    emit("A=D-A\n");                        \
+                    emit("D=M\n");                          \
+                    emit("@%s\n", seg);                     \
+                    emit("M=D\n\n");
 
 static char*
 create_return_address();
@@ -66,8 +73,6 @@ int_to_str(int n);
 
 void
 generate_function_operation(FILE* out, char* func, unsigned locals) {
-    char* unique_func_name = create_unique_func_name(func);
-
     if (vm_context.current_function_name != NULL) {
         free(vm_context.current_function_name);
     }
@@ -77,22 +82,18 @@ generate_function_operation(FILE* out, char* func, unsigned locals) {
 
     emit("// begin function\n\n");
 
-    emit("(%s)\n\n", unique_func_name);
+    emit("(%s)\n\n", func);
 
     for (int i = 0; i < locals; i++) {
         push_val("0");
     }
 
     emit("// end function\n\n");
-
-    free(unique_func_name);
 }
 
 void
 generate_call_operation(FILE* out, char* func, unsigned args) {
     char* ret_address = create_return_address();
-    char* callee      = create_unique_func_name(func);
-
     vm_context.return_address_count++;
 
     emit("// begin call\n\n");
@@ -104,50 +105,74 @@ generate_call_operation(FILE* out, char* func, unsigned args) {
     save_segment("THAT");
     reposition_arg(args);
     reposition_lcl();
-    goto_f(callee);
+    goto_f(func);
     inject_return_address(ret_address);
 
     emit("// end call\n\n");
 
     free(ret_address);
-    free(callee);
 }
 
 void
 generate_return_operation(FILE* out) {
-    printf("return\n");
-}
+    emit("// begin return\n\n");
 
-static char*
-create_unique_func_name(char* func) {
-    char* file = vm_context.input_filename;
+    emit("// temp variable for LCL\n");
+    emit("@LCL\n");
+    emit("D=M\n");
+    emit("@R13\n");
+    emit("M=D\n\n");
 
-    size_t size = strlen(file) + strlen(func) + 1 + 1; //'.' and '\0' chars
-    char* unique = malloc(sizeof(char) * size);
-    if (!unique) {
-        perror("malloc");
-        exit(1);
-    }
+    emit("// save ret addr in temp variable\n");
+    emit("@R13\n");
+    emit("D=M\n");
+    emit("@5\n");
+    emit("A=D-A\n");
+    emit("D=M\n");
+    emit("@R14\n");
+    emit("M=D\n\n");
 
-    sprintf(unique, "%s.%s", file, func);
-    return unique;
+    emit("// reposition return value for the caller\n");
+    emit("@SP\n");
+    emit("AM=M-1\n");
+    emit("D=M\n");
+    emit("@ARG\n");
+    emit("A=M\n");
+    emit("M=D\n\n");
+
+    emit("// reposition SP for the caller\n");
+    emit("@ARG\n");
+    emit("D=M+1\n");
+    emit("@SP\n");
+    emit("M=D\n\n");
+
+    restore_segment("THAT", 1);
+    restore_segment("THIS", 2);
+    restore_segment("ARG", 3);
+    restore_segment("LCL", 4);
+
+    emit("// goto ret addr\n");
+    emit("@R14\n");
+    emit("A=M\n");
+    emit("0;JMP\n\n");
+
+    emit("// end return\n\n");
 }
 
 static char*
 create_return_address() {
     char* ret   = "$ret.";
-    char* file  = vm_context.input_filename;
     char* func  = vm_context.current_function_name;
     char* count = int_to_str(vm_context.return_address_count);
 
-    size_t size  = strlen(file) + strlen(func) + strlen(ret) + strlen(count) + 1 + 1; //'.' and '\0' chars
+    size_t size  = strlen(func) + strlen(ret) + strlen(count) + 1; // '\0' char
     char*  label = malloc(sizeof(char) * size);
     if (!label) {
         perror("malloc");
         exit(1);
     }
 
-    sprintf(label, "%s.%s%s%s", file, func, ret, count);
+    sprintf(label, "%s%s%s", func, ret, count);
     free(count);
     return label;
 }
