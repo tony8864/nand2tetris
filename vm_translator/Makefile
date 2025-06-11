@@ -1,4 +1,4 @@
-CLFAGS = -Isrc -Isrc/parser_util -Isrc/codegen/include -Isrc/file_util
+CLFAGS = -Isrc -Isrc/parser_util -Isrc/codegen/include -Isrc/file_util -Isrc/common
 
 OBJECTS = 	build/parser.o \
 			build/scanner.o \
@@ -22,7 +22,7 @@ build/parser.o: build/parser.tab.c
 build/scanner.o: build/scanner.c
 	gcc ${CLFAGS} -c $< -o $@
 
-build/common.o: src/common.c
+build/common.o: src/common/common.c
 	gcc ${CLFAGS} -c $< -o $@
 
 build/file_util.o: src/file_util/file_util.c
