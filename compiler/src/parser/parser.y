@@ -16,23 +16,73 @@ extern int      yylineno;
 
 %}
 
+%union {
+    int intVal;
+    char* strVal;
+}
+
 %start program
 
 %token CLASS CONSTRUCTOR FUNCTION METHOD FIELD STATIC
 %token VAR INT CHAR BOOLEAN VOID TRUE FALSE NULL_T THIS
 %token LET DO IF ELSE WHILE RETURN
 
+%token OPEN_CURLY CLOSE_CURLY OPEN_PAR CLOSE_PAR OPEN_BRACKET CLOSE_BRACKET
+%token DOT COMMA SEMICOLON
+%token PLUS MINUS MULT DIV AND OR
+%token LESS GREATER EQUAL NEG
+
+%token<intVal> INTEGER
+%token<strVal> STRING
+%token<strVal> IDENTIFIER
+
 %%
 
-program: keyword_list
+program: token_seq;
+
+token_seq:
+        token_seq token
         | %empty
         ;
 
-keyword_list: KEYWORD
-              | keyword_list KEYWORD
-              ;  
+token: keyword_list
+        | punc_list
+        | arithm_list
+        | rel_list
+        | id_list
+        | int_list
+        | str_list
+        ;
 
-KEYWORD:
+keyword_list: keyword
+              | keyword_list keyword
+              ;
+
+punc_list: punctuation
+            | punc_list punctuation
+            ;
+
+arithm_list: arithm
+            | arithm_list arithm
+            ;
+
+rel_list: rel
+          | rel_list rel
+          ;
+
+id_list: IDENTIFIER
+            | id_list IDENTIFIER
+            ;
+
+int_list:  INTEGER
+            | int_list INTEGER
+            ;
+
+str_list:  STRING   { free($1); }
+            | str_list STRING { free($2); }
+            ;
+
+keyword:
       CLASS
     | CONSTRUCTOR
     | FUNCTION
@@ -56,6 +106,34 @@ KEYWORD:
     | RETURN
     ;
 
+
+punctuation:
+        OPEN_CURLY
+        | CLOSE_CURLY
+        | OPEN_PAR
+        | CLOSE_PAR
+        | OPEN_BRACKET
+        | CLOSE_BRACKET
+        | DOT
+        | COMMA
+        | SEMICOLON
+        ;
+
+arithm:
+    PLUS
+    | MINUS
+    | MULT
+    | DIV
+    | AND
+    | OR
+    ;
+
+rel: 
+    LESS
+    | GREATER
+    | EQUAL
+    | NEG
+    ;
 
 %%
 
@@ -81,6 +159,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < count; i++) {
         printf("file: %s\n", files[i]);
         yyin = safe_fopen(files[i], "r");
+        yylineno = 1;
         yyparse();
         fclose(yyin);
     }

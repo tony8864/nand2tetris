@@ -1,10 +1,11 @@
-CLFAGS = -Isrc -Isrc/file_util -Isrc/safe_util -Isrc/common
+CLFAGS = -Isrc -Isrc/file_util -Isrc/safe_util -Isrc/common -Isrc/lexer
 
-OBJECTS = 	build/parser.o	\
-			build/scanner.o \
-			build/file_util.o \
-			build/safe_util.o \
-			build/common.o 
+OBJECTS = 	build/parser.o		\
+			build/scanner.o 	\
+			build/file_util.o 	\
+			build/safe_util.o 	\
+			build/common.o 		\
+			build/string_handler.o
 
 FILEUTIL_PATH 	= src/file_util
 FILEUTIL_H 		= ${FILEUTIL_PATH}/file_util.h
@@ -20,14 +21,18 @@ COMMON_PATH = src/common
 COMMON_H 	= ${COMMON_PATH}/common.h
 COMMON_C 	= ${COMMON_PATH}/common.c
 
-PARSER   	= src/parser.y
+SCANNER  	= src/lexer/scanner.l
+SCANNER_C 	= build/scanner.c
+SCANNER_DEP = ${SCANNER_C} ${PARSER_H} ${COMMON_H} ${STRING_HANDLER_H}
+
+STRING_HANDLER_PATH = src/lexer
+STRING_HANDLER_H = ${STRING_HANDLER_PATH}/string_handler.h
+STRING_HANDLER_C = ${STRING_HANDLER_PATH}/string_handler.c
+
+PARSER   	= src/parser/parser.y
 PARSER_C 	= build/parser.tab.c
 PARSER_H 	= build/parser.tab.h
 PARSER_DEP 	= ${PARSER_C} ${COMMON_H} ${SAFEUTIL_H} ${FILEUTIL_H}
-
-SCANNER  	= src/scanner.l
-SCANNER_C 	= build/scanner.c
-SCANNER_DEP = ${SCANNER_C} ${PARSER_H} ${COMMON_H}
 
 TARGET = compiler
 
@@ -48,6 +53,9 @@ build/scanner.o: ${SCANNER_DEP}
 
 build/scanner.c: ${SCANNER} 
 	flex --outfile=${SCANNER_C} $<
+
+build/string_handler.o: ${STRING_HANDLER_C}
+	gcc ${CLFAGS} -c $< -o $@
 
 build/common.o: ${COMMON_C}
 	gcc ${CLFAGS} -c $< -o $@
