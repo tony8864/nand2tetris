@@ -259,10 +259,16 @@ term
     | STRING
     | keywordConst
     | varName
+    | varName OPEN_BRACKET expression CLOSE_BRACKET
+    | OPEN_PAR expression CLOSE_PAR
+    | unaryOperation term
+    | subroutineCall
     ;
 
 subroutineCall
             : subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
+            | className DOT subroutineName  OPEN_PAR optionalExpressionList CLOSE_PAR
+            | varName DOT subroutineName    OPEN_PAR optionalExpressionList CLOSE_PAR
             ;
 
 optionalExpressionList
@@ -290,6 +296,11 @@ operation
         | GREATER
         | EQUAL
         ;
+
+unaryOperation
+            : MINUS
+            | NEG
+            ;
 
 keywordConst
             : TRUE
