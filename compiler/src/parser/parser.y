@@ -21,6 +21,7 @@ extern int      yylineno;
     char*           strVal;
     ClassScopeType  classScopeType;
     VarType         varType;
+    SubroutineType  subroutine;
 }
 
 %start program
@@ -40,12 +41,12 @@ extern int      yylineno;
 
 %type<classScopeType>   classScope
 %type<varType>          varType
-
+%type<subroutine>       subroutine
 
 %%
 
 program
-    : CLASS IDENTIFIER OPEN_CURLY optionalClassVarDecl CLOSE_CURLY
+    : CLASS IDENTIFIER OPEN_CURLY optionalClassVarDecl optionalSubroutineDecl CLOSE_CURLY
         {
             BISON_DEBUG_PRINT("class definition: %s\n", $2);
         }
@@ -55,7 +56,6 @@ optionalClassVarDecl
                     : classVarDeclarations
                     | %empty
                     ;
-
 
 classVarDeclarations
                 : classVarDeclaration
@@ -70,7 +70,7 @@ classVariables
             : IDENTIFIER
             | classVariables COMMA IDENTIFIER
             ;
-            
+
 varType
     : INT
         {
@@ -102,6 +102,57 @@ classScope
             }
         ;
 
+
+subroutine
+        : CONSTRUCTOR
+            {
+                $$ = CONSTRUCTOR_TYPE;
+            }
+        | FUNCTION
+            {
+                $$ = FUNCTION_TYPE;
+            }
+        | METHOD
+            {
+                $$ = METHOD_TYPE;
+            }
+        ;
+
+returnType
+        : VOID
+        | varType
+        ;
+
+optionalSubroutineDecl
+                    : subroutineDeclarations
+                    | %empty
+                    ;
+
+subroutineDeclarations
+                    : subroutineDeclaration
+                    | subroutineDeclarations subroutineDeclaration
+                    ;
+
+subroutineDeclaration
+                    : subroutine returnType  IDENTIFIER OPEN_PAR parameterList CLOSE_PAR subroutineBody
+                    ;
+
+parameterList
+            : parameters
+            | %empty
+            ;
+
+parameters
+        : param
+        | parameters COMMA param
+        ;
+
+param
+    : varType IDENTIFIER
+    ;
+
+subroutineBody
+            : OPEN_CURLY CLOSE_CURLY
 
 %%
 

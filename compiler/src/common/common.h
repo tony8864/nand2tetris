@@ -36,4 +36,10 @@ typedef struct {
     char* className;
 } VarType;
 
+typedef enum {
+    CONSTRUCTOR_TYPE,
+    FUNCTION_TYPE,
+    METHOD_TYPE,
+} SubroutineType;
+
 #endif
