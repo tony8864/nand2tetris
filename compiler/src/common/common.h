@@ -39,7 +39,7 @@ typedef struct {
 typedef enum {
     CONSTRUCTOR_TYPE,
     FUNCTION_TYPE,
-    METHOD_TYPE,
+    METHOD_TYPE
 } SubroutineType;
 
 #endif

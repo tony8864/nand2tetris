@@ -39,6 +39,7 @@ extern int      yylineno;
 %token<strVal> STRING
 %token<strVal> IDENTIFIER
 
+%type<strVal>           className varName
 %type<classScopeType>   classScope
 %type<varType>          varType
 %type<subroutine>       subroutine
@@ -46,11 +47,18 @@ extern int      yylineno;
 %%
 
 program
-    : CLASS IDENTIFIER OPEN_CURLY optionalClassVarDecl optionalSubroutineDecl CLOSE_CURLY
+    : CLASS className OPEN_CURLY optionalClassVarDecl optionalSubroutineDecl CLOSE_CURLY
         {
             BISON_DEBUG_PRINT("class definition: %s\n", $2);
         }
     ;
+
+className
+        : IDENTIFIER
+            {
+                $$ = $1;
+            }
+        ;
 
 optionalClassVarDecl
                     : classVarDeclarations
@@ -67,26 +75,33 @@ classVarDeclaration
                 ;
                 
 classVariables
+            : varName
+            | classVariables COMMA varName
+            ;
+
+varName
             : IDENTIFIER
-            | classVariables COMMA IDENTIFIER
+                {
+                    $$ = $1;
+                }
             ;
 
 varType
     : INT
         {
-            $$ = (VarType){ .kind = INT_TYPE,    .className = NULL };
+        
         }
     | CHAR
         {
-            $$ = (VarType){ .kind = CHAR_TYPE,   .className = NULL };
+            
         }
     | BOOLEAN
         {
-            $$ = (VarType){ .kind = BOOLEAN_TYPE, .className = NULL };
+           
         }
     | IDENTIFIER
         {
-            $$ = (VarType){ .kind = CLASS_TYPE,   .className = $1 };
+            
         }
     ;
 
@@ -134,8 +149,12 @@ subroutineDeclarations
                     ;
 
 subroutineDeclaration
-                    : subroutine returnType  IDENTIFIER OPEN_PAR parameterList CLOSE_PAR subroutineBody
+                    : subroutine returnType subroutineName OPEN_PAR parameterList CLOSE_PAR subroutineBody
                     ;
+
+subroutineName
+            : IDENTIFIER
+            ;
 
 parameterList
             : parameters
@@ -152,7 +171,132 @@ param
     ;
 
 subroutineBody
-            : OPEN_CURLY CLOSE_CURLY
+            : OPEN_CURLY optionalLocalVarDecl statements CLOSE_CURLY
+            ;
+
+optionalLocalVarDecl
+                    : localVarDeclarations
+                    | %empty
+                    ;
+
+localVarDeclarations
+                    : localVarDeclaration
+                    | localVarDeclarations localVarDeclaration
+                    ;
+
+localVarDeclaration
+                : VAR varType localVariables SEMICOLON
+                ;
+
+localVariables
+            : varName
+            | localVariables COMMA varName
+            ;
+
+statements
+        : statements statement
+        | %empty
+        ;
+
+statement
+        : ifstatement
+        | letstatement
+        | whilestatement
+        | dostatement
+        | returnstatement
+        ;
+
+ifstatement
+        : IF OPEN_PAR expression CLOSE_PAR OPEN_CURLY statements CLOSE_CURLY optionalelse
+        ;
+
+optionalelse
+            : ELSE OPEN_CURLY statements CLOSE_CURLY
+            | %empty
+            ;
+
+letstatement
+            : LET varName optionalArrayExpression EQUAL expression SEMICOLON
+            ;
+
+whilestatement
+            : WHILE OPEN_PAR expression CLOSE_PAR OPEN_CURLY statements CLOSE_CURLY
+            ;
+
+dostatement
+        : DO subroutineCall SEMICOLON
+        ;
+
+returnstatement
+            : RETURN opetionalReturnExpression SEMICOLON
+            ;
+
+opetionalReturnExpression
+                        : expression
+                        | %empty
+                        ;
+
+optionalArrayExpression
+                    : OPEN_BRACKET expression CLOSE_BRACKET
+                    | %empty
+                    ;
+
+expression
+        : term optionalTerm
+        ;
+
+optionalTerm
+            : optionalTerm operationTerm
+            | %empty
+            ;
+
+operationTerm
+            : operation term
+            ;
+
+term
+    : INTEGER
+    | STRING
+    | keywordConst
+    | varName
+    ;
+
+subroutineCall
+            : subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
+            ;
+
+optionalExpressionList
+                    : expressionList
+                    | %empty
+                    ;
+
+expressionList
+            : expressions
+            ;
+
+expressions
+        : expression
+        | expressions COMMA expression
+        ;
+
+operation
+        : PLUS
+        | MINUS
+        | MULT
+        | DIV
+        | AND
+        | OR
+        | LESS
+        | GREATER
+        | EQUAL
+        ;
+
+keywordConst
+            : TRUE
+            | FALSE
+            | THIS
+            | NULL_T
+            ;
 
 %%
 
