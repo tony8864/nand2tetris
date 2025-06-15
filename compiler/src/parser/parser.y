@@ -17,8 +17,10 @@ extern int      yylineno;
 %}
 
 %union {
-    int intVal;
-    char* strVal;
+    int             intVal;
+    char*           strVal;
+    ClassScopeType  classScopeType;
+    VarType         varType;
 }
 
 %start program
@@ -36,104 +38,70 @@ extern int      yylineno;
 %token<strVal> STRING
 %token<strVal> IDENTIFIER
 
+%type<classScopeType>   classScope
+%type<varType>          varType
+
+
 %%
 
-program: token_seq;
+program
+    : CLASS IDENTIFIER OPEN_CURLY optionalClassVarDecl CLOSE_CURLY
+        {
+            BISON_DEBUG_PRINT("class definition: %s\n", $2);
+        }
+    ;
 
-token_seq:
-        token_seq token
-        | %empty
-        ;
+optionalClassVarDecl
+                    : classVarDeclarations
+                    | %empty
+                    ;
 
-token: keyword_list
-        | punc_list
-        | arithm_list
-        | rel_list
-        | id_list
-        | int_list
-        | str_list
-        ;
 
-keyword_list: keyword
-              | keyword_list keyword
-              ;
+classVarDeclarations
+                : classVarDeclaration
+                | classVarDeclarations classVarDeclaration
+                ;
 
-punc_list: punctuation
-            | punc_list punctuation
+classVarDeclaration
+                : classScope varType classVariables SEMICOLON
+                ;
+                
+classVariables
+            : IDENTIFIER
+            | classVariables COMMA IDENTIFIER
             ;
-
-arithm_list: arithm
-            | arithm_list arithm
-            ;
-
-rel_list: rel
-          | rel_list rel
-          ;
-
-id_list: IDENTIFIER
-            | id_list IDENTIFIER
-            ;
-
-int_list:  INTEGER
-            | int_list INTEGER
-            ;
-
-str_list:  STRING   { free($1); }
-            | str_list STRING { free($2); }
-            ;
-
-keyword:
-      CLASS
-    | CONSTRUCTOR
-    | FUNCTION
-    | METHOD
-    | FIELD
-    | STATIC
-    | VAR
-    | INT
+            
+varType
+    : INT
+        {
+            $$ = (VarType){ .kind = INT_TYPE,    .className = NULL };
+        }
     | CHAR
+        {
+            $$ = (VarType){ .kind = CHAR_TYPE,   .className = NULL };
+        }
     | BOOLEAN
-    | VOID
-    | TRUE
-    | FALSE
-    | NULL_T
-    | THIS
-    | LET
-    | DO
-    | IF
-    | ELSE
-    | WHILE
-    | RETURN
+        {
+            $$ = (VarType){ .kind = BOOLEAN_TYPE, .className = NULL };
+        }
+    | IDENTIFIER
+        {
+            $$ = (VarType){ .kind = CLASS_TYPE,   .className = $1 };
+        }
     ;
 
 
-punctuation:
-        OPEN_CURLY
-        | CLOSE_CURLY
-        | OPEN_PAR
-        | CLOSE_PAR
-        | OPEN_BRACKET
-        | CLOSE_BRACKET
-        | DOT
-        | COMMA
-        | SEMICOLON
+classScope
+        : STATIC
+            {
+                $$ = STATIC_SCOPE;
+            }
+        | FIELD
+            {
+                $$ = FIELD_SCOPE;
+            }
         ;
 
-arithm:
-    PLUS
-    | MINUS
-    | MULT
-    | DIV
-    | AND
-    | OR
-    ;
-
-rel: 
-    LESS
-    | GREATER
-    | EQUAL
-    | NEG
-    ;
 
 %%
 
@@ -144,7 +112,8 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    common_set_debug_mode(1);
+    common_set_lex_debug_mode(0);
+    common_set_bison_debug_mode(1);
 
     char* input_folder = argv[1];
 
