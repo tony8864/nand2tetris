@@ -296,10 +296,18 @@ term
     ;
 
 subroutineCall
-            : subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
-            | className DOT subroutineName  OPEN_PAR optionalExpressionList CLOSE_PAR
-            | varName DOT subroutineName    OPEN_PAR optionalExpressionList CLOSE_PAR
+            : directcall
+            | methodcall
             ;
+
+directcall
+        : subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
+        ;
+
+
+methodcall
+        : IDENTIFIER DOT subroutineName  OPEN_PAR optionalExpressionList CLOSE_PAR
+        ;
 
 optionalExpressionList
                     : expressionList
