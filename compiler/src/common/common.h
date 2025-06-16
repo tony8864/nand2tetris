@@ -18,6 +18,20 @@ common_set_lex_debug_mode(unsigned enabled);
 void
 common_set_bison_debug_mode(unsigned enabled);
 
+typedef struct ClassVariable ClassVariable;
+typedef struct ClassSymbolTable ClassSymbolTable;
+typedef struct ClassSymbolTableEntry ClassSymbolTableEntry;
+
+typedef struct {
+    char* currentClassName;
+    char* currentFilePath;      // test/Main.jack
+    char* currentFileName;      // Main.jack
+    char* currentSourceName;    // Main
+
+    ClassSymbolTable* classSymbolTable;
+} CompilerContext;
+
+extern CompilerContext gbl_context;
 
 typedef enum {
     STATIC_SCOPE,
@@ -41,5 +55,25 @@ typedef enum {
     FUNCTION_TYPE,
     METHOD_TYPE
 } SubroutineType;
+
+typedef struct ClassVarDecList {
+    unsigned count;
+    char** names;
+} ClassVarDecList;
+
+VarType*
+common_create_vartype(VarTypeKind kind, char* name);
+
+VarType*
+common_copy_vartype(VarType* original);
+
+void
+common_free_vartype(VarType* t);
+
+char*
+class_scope_type_to_string(ClassScopeType type);
+
+char*
+var_type_to_string(VarType* type);
 
 #endif

@@ -4,12 +4,27 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "common.h"
+#include "class_symbol_table.h"
+#include "parser_util.h"
 #include "file_util.h"
 #include "safe_util.h"
+#include "str_util.h"
+#include "common.h"
 
 int yyerror(char* msg);
 int yylex(void);
+
+static void
+parse_file(char* filename);
+
+static void
+set_global_context_for_file(char* filepath);
+
+static void
+set_global_context_for_symtables();
+
+static void
+free_global_context();
 
 extern FILE*    yyin;
 extern int      yylineno;
@@ -17,11 +32,12 @@ extern int      yylineno;
 %}
 
 %union {
-    int             intVal;
-    char*           strVal;
-    ClassScopeType  classScopeType;
-    VarType         varType;
-    SubroutineType  subroutine;
+    int                 intVal;
+    char*               strVal;
+    ClassScopeType      classScopeType;
+    VarType*            varType;
+    SubroutineType      subroutine;
+    ClassVarDecList*    classVarDecList;
 }
 
 %start program
@@ -43,19 +59,22 @@ extern int      yylineno;
 %type<classScopeType>   classScope
 %type<varType>          varType
 %type<subroutine>       subroutine
+%type<classVarDecList>  classVariables
 
 %%
 
 program
     : CLASS className OPEN_CURLY optionalClassVarDecl optionalSubroutineDecl CLOSE_CURLY
         {
-            BISON_DEBUG_PRINT("class definition: %s\n", $2);
+            BISON_DEBUG_PRINT("\tclass definition: %s\n\n", $2);
+            free($2);
         }
     ;
 
 className
         : IDENTIFIER
             {
+                parserutil_validate_class_name($1);
                 $$ = $1;
             }
         ;
@@ -72,11 +91,22 @@ classVarDeclarations
 
 classVarDeclaration
                 : classScope varType classVariables SEMICOLON
+                    {
+                        parserutil_insert_class_variables($1, $2, $3);
+                        parserutil_free_class_var_list($3);
+                        common_free_vartype($2);
+                    }
                 ;
                 
 classVariables
             : varName
+                {
+                    $$ = parserutil_create_class_var_list($1);
+                }
             | classVariables COMMA varName
+                {
+                    parserutil_append_class_var($1, $3);
+                }
             ;
 
 varName
@@ -89,19 +119,19 @@ varName
 varType
     : INT
         {
-        
+            $$ = parserutil_create_var_type(INT_TYPE, NULL);
         }
     | CHAR
         {
-            
+            $$ = parserutil_create_var_type(CHAR_TYPE, NULL);
         }
     | BOOLEAN
         {
-           
+            $$ = parserutil_create_var_type(BOOLEAN_TYPE, NULL);
         }
     | IDENTIFIER
         {
-            
+            $$ = parserutil_create_var_type(CLASS_TYPE, $1);
         }
     ;
 
@@ -332,16 +362,48 @@ int main(int argc, char** argv) {
     char**  files = FILEUTIL_list_files(input_folder, &count);
 
     for (int i = 0; i < count; i++) {
-        printf("file: %s\n", files[i]);
-        yyin = safe_fopen(files[i], "r");
-        yylineno = 1;
-        yyparse();
-        fclose(yyin);
+        parse_file(files[i]);
     }
 
     FILEUTIL_free_file_list(files, count);
 
     return 0;
+}
+
+static void
+parse_file(char* filepath) {
+    printf("\n\tfile: %s\n", filepath);
+
+    set_global_context_for_symtables();
+    set_global_context_for_file(filepath);
+
+    yyin = safe_fopen(filepath, "r");
+    yylineno = 1;
+
+    yyparse();
+    fclose(yyin);
+
+    classSymtab_print(gbl_context.classSymbolTable);
+    
+    free_global_context();
+    classSymtab_free(gbl_context.classSymbolTable);
+}
+
+static void
+set_global_context_for_file(char* filepath) {
+    gbl_context.currentFilePath   = safe_strdup(filepath);
+    gbl_context.currentSourceName = strutil_path_to_source_name(filepath);
+}
+
+static void
+set_global_context_for_symtables() {
+    gbl_context.classSymbolTable = classSymtab_initialize();
+}
+
+static void
+free_global_context() {
+    free(gbl_context.currentFilePath);
+    free(gbl_context.currentSourceName);
 }
 
 int

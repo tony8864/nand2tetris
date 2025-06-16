@@ -1,16 +1,34 @@
-CLFAGS = -Isrc -Isrc/file_util -Isrc/safe_util -Isrc/common -Isrc/lexer
+CLFAGS = -Isrc -Isrc/file_util -Isrc/safe_util -Isrc/common -Isrc/lexer -Isrc/parser -Isrc/symbol_table/class_symbol_table -Isrc/str_util
 
 OBJECTS = 	build/parser.o		\
 			build/scanner.o 	\
 			build/file_util.o 	\
 			build/safe_util.o 	\
 			build/common.o 		\
-			build/string_handler.o
+			build/strutil.o		\
+			build/string_handler.o  \
+			build/parser_util.o 	\
+			build/class_symbol_table.o
+
+CLASS_SYMTAB_PATH = src/symbol_table/class_symbol_table
+CLASS_SYMTAB_H = ${CLASS_SYMTAB_PATH}/class_symbol_table.h
+CLASS_SYMTAB_C = ${CLASS_SYMTAB_PATH}/class_symbol_table.c
+CLASS_SYMTAB_DEP = ${CLASS_SYMTAB_C} ${SAFEUTIL_H}
 
 FILEUTIL_PATH 	= src/file_util
 FILEUTIL_H 		= ${FILEUTIL_PATH}/file_util.h
 FILEUTIL_C 		= ${FILEUTIL_PATH}/file_util.c
 FILEUTIL_DEP 	= ${FILEUTIL_C} ${FILEUTIL_H} ${SAFEUTIL_H}
+
+STRUTIL_PATH = src/str_util
+STRUTIL_H	 = ${STRUTIL_PATH}/str_util.h
+STRUTIL_C	 = ${STRUTIL_PATH}/str_util.c
+STRUTIL_DEP	 = ${STRUTIL_C} ${SAFEUTIL_H}
+
+PARSERUTIL_PATH = src/parser
+PARSERUTIL_H 	= ${PARSERUTIL_PATH}/parser_util.h
+PARSERUTIL_C	= ${PARSERUTIL_PATH}/parser_util.c
+PARSERUTIL_DEP	= ${PARSERUTIL_C} ${COMMON_H} ${SAFEUTIL_H}
 
 SAFEUTIL_PATH = src/safe_util
 SAFEUTIL_H    = ${SAFEUTIL_PATH}/safe_util.h
@@ -20,6 +38,7 @@ SAFEUTIL_DEP  = ${SAFEUTIL_C} ${SAFEUTIL_H}
 COMMON_PATH = src/common
 COMMON_H 	= ${COMMON_PATH}/common.h
 COMMON_C 	= ${COMMON_PATH}/common.c
+COMMON_DEP  = ${COMMON_C} ${SAFEUTIL_H}
 
 SCANNER  	= src/lexer/scanner.l
 SCANNER_C 	= build/scanner.c
@@ -32,7 +51,7 @@ STRING_HANDLER_C = ${STRING_HANDLER_PATH}/string_handler.c
 PARSER   	= src/parser/parser.y
 PARSER_C 	= build/parser.tab.c
 PARSER_H 	= build/parser.tab.h
-PARSER_DEP 	= ${PARSER_C} ${COMMON_H} ${SAFEUTIL_H} ${FILEUTIL_H}
+PARSER_DEP 	= ${PARSER_C} ${COMMON_H} ${SAFEUTIL_H} ${FILEUTIL_H} ${PARSERUTIL_H}
 
 TARGET = compiler
 
@@ -57,10 +76,19 @@ build/scanner.c: ${SCANNER}
 build/string_handler.o: ${STRING_HANDLER_C}
 	gcc ${CLFAGS} -c $< -o $@
 
-build/common.o: ${COMMON_C}
+build/parser_util.o: ${PARSERUTIL_DEP}
+	gcc ${CLFAGS} -c $< -o $@
+
+build/class_symbol_table.o: ${CLASS_SYMTAB_DEP}
+	gcc ${CLFAGS} -c $< -o $@
+
+build/common.o: ${COMMON_DEP}
 	gcc ${CLFAGS} -c $< -o $@
 
 build/file_util.o: ${FILEUTIL_DEP}
+	gcc ${CLFAGS} -c $< -o $@
+
+build/strutil.o: ${STRUTIL_DEP}
 	gcc ${CLFAGS} -c $< -o $@
 
 build/safe_util.o: ${SAFEUTIL_DEP}
