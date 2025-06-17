@@ -74,6 +74,17 @@ typedef struct VarDecList {
     char** names;
 } VarDecList;
 
+typedef struct Param {
+    VarType* type;
+    char* name;
+    struct Param* next;
+} Param;
+
+typedef struct ParamList {
+    unsigned count;
+    Param* head;
+} ParamList;
+
 VarType*
 common_create_vartype(VarTypeKind kind, char* name);
 

@@ -38,7 +38,9 @@ extern int      yylineno;
     ClassScopeType      classScopeType;
     VarType*            varType;
     SubroutineType      subroutine;
-    VarDecList*    VarDecList;
+    VarDecList*         VarDecList;
+    ParamList*          paramList;
+    Param*              param;
 }
 
 %start program
@@ -61,6 +63,8 @@ extern int      yylineno;
 %type<varType>          varType returnType subroutineHeader
 %type<subroutine>       subroutine
 %type<VarDecList>       classVariables localVariables
+%type<paramList>        parameterList parameters
+%type<param>            param
 
 %%
 
@@ -188,8 +192,10 @@ subroutineDeclarations
 subroutineDeclaration
                     : subroutineHeader OPEN_PAR parameterList CLOSE_PAR subroutineBody
                         {
+                            parserutil_print_param_list($3);
                             routineSymtab_print(ROUTINE_SYMTAB);
                             routineSymtab_free(ROUTINE_SYMTAB);
+                            parserutil_free_param_list($3);
                             common_free_vartype($1);
                         }
                     ;
@@ -215,16 +221,34 @@ subroutineName
 
 parameterList
             : parameters
+                {
+                    $$ = $1;
+                    parserutil_insert_parameters($1);
+                }
             | %empty
+                {
+                    $$ = NULL;
+                }
             ;
 
 parameters
         : param
+            {
+                $$ = parserutil_create_param_list();
+                parserutil_append_param($$, $1);
+            }
         | parameters COMMA param
+            {
+                parserutil_append_param($1, $3);
+            }
         ;
 
 param
     : varType IDENTIFIER
+        {
+            $$ = parserutil_create_param($1, $2);
+            free($2);
+        }
     ;
 
 subroutineBody

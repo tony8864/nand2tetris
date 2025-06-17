@@ -18,6 +18,9 @@ check_class_var_redeclared(char* name);
 static void
 check_routine_var_redeclared(char* name);
 
+static void
+free_param(Param* p);
+
 void
 parserutil_validate_class_name(char* className) {
     assert(gbl_context.currentSourceName);
@@ -65,6 +68,65 @@ parserutil_free_var_list(VarDecList* list) {
     free(list);
 }
 
+ParamList*
+parserutil_create_param_list() {
+    ParamList* list = safe_malloc(sizeof(ParamList));
+    list->count = 0;
+    list->head = NULL;
+    return list;
+}
+
+Param*
+parserutil_create_param(VarType* type, char* name) {
+    Param* p = safe_malloc(sizeof(Param));
+    p->type = type;
+    p->name = safe_strdup(name);
+    return p;
+}
+
+void
+parserutil_append_param(ParamList* list, Param* param) {
+    param->next = list->head;
+    list->head = param;
+    list->count++;
+}
+
+void
+parserutil_free_param_list(ParamList* list) {
+    Param* curr = list->head;
+    Param* next = NULL;
+    while (curr) {
+        next = curr->next;
+        free_param(curr);
+        curr = next;
+    }
+    free(list);
+}
+
+void
+parserutil_print_param_list(ParamList* list) {
+    Param* p = list->head;
+    while (p) {
+        printf("(name: %s, type: %s) ", p->name, var_type_to_string(p->type));
+        p = p->next;
+    }
+    printf("\n");
+}
+
+void
+parserutil_insert_parameters(ParamList* list) {
+    Param* p = list->head;
+    char* name;
+    VarType* type;
+    while (p) {
+        name = p->name;
+        type = p->type;
+        check_routine_var_redeclared(name);
+        routineSymtab_insert(ROUTINE_SYMTAB, name, ARG_TYPE, type);
+        p = p->next;
+    }
+}
+
 VarType*
 parserutil_create_var_type(VarTypeKind kind, char* name) {
     VarType* type = safe_malloc(sizeof(VarType));
@@ -107,4 +169,11 @@ check_routine_var_redeclared(char* name) {
         printf("Error at line %d: Symbol \"%s\" is already declared.\n", yylineno, name);
         exit(1);
     }
+}
+
+static void
+free_param(Param* p) {
+    common_free_vartype(p->type);
+    free(p->name);
+    free(p);
 }
