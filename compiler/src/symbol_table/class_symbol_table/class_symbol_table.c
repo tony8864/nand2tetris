@@ -88,7 +88,11 @@ classSymtab_lookup(ClassSymbolTable* table, char* name) {
 
 void
 classSymtab_print(ClassSymbolTable* table) {
+<<<<<<< HEAD
     printf("------------------- Symbol Table -------------------\n");
+=======
+    printf("------------------- Class Symbol Table -------------------\n");
+>>>>>>> c0c37b5 (implement subroutine level symbol table)
     printf("%-10s %-10s %-10s %-10s\n", "name", "kind", "type", "index");
     ClassSymbolTableEntry* curr;
     for (int i = 0; i < CLASS_HASH_TABLE_SIZE; i++) {
