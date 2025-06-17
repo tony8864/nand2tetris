@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-CLFAGS = -Isrc -Isrc/file_util -Isrc/safe_util -Isrc/common -Isrc/lexer -Isrc/parser -Isrc/symbol_table/class_symbol_table -Isrc/str_util
-=======
 CLFAGS = -Isrc -Isrc/file_util -Isrc/safe_util -Isrc/common -Isrc/lexer -Isrc/parser -Isrc/symbol_table/class_symbol_table -Isrc/symbol_table/routine_symbol_table -Isrc/str_util
->>>>>>> c0c37b5 (implement subroutine level symbol table)
 
 OBJECTS = 	build/parser.o		\
 			build/scanner.o 	\
@@ -12,26 +8,19 @@ OBJECTS = 	build/parser.o		\
 			build/strutil.o		\
 			build/string_handler.o  \
 			build/parser_util.o 	\
-<<<<<<< HEAD
-			build/class_symbol_table.o
-=======
 			build/class_symbol_table.o \
 			build/routine_symbol_table.o
->>>>>>> c0c37b5 (implement subroutine level symbol table)
 
 CLASS_SYMTAB_PATH = src/symbol_table/class_symbol_table
 CLASS_SYMTAB_H = ${CLASS_SYMTAB_PATH}/class_symbol_table.h
 CLASS_SYMTAB_C = ${CLASS_SYMTAB_PATH}/class_symbol_table.c
 CLASS_SYMTAB_DEP = ${CLASS_SYMTAB_C} ${SAFEUTIL_H}
 
-<<<<<<< HEAD
-=======
 ROUTINE_SYMTAB_PATH = src/symbol_table/routine_symbol_table
 ROUTINE_SYMTAB_H = ${ROUTINE_SYMTAB_PATH}/routine_symbol_table.h
 ROUTINE_SYMTAB_C = ${ROUTINE_SYMTAB_PATH}/routine_symbol_table.c
 ROUTINE_SYMTAB_DEP = ${ROUTINE_SYMTAB_C} ${SAFEUTIL_H}
 
->>>>>>> c0c37b5 (implement subroutine level symbol table)
 FILEUTIL_PATH 	= src/file_util
 FILEUTIL_H 		= ${FILEUTIL_PATH}/file_util.h
 FILEUTIL_C 		= ${FILEUTIL_PATH}/file_util.c
@@ -68,11 +57,7 @@ STRING_HANDLER_C = ${STRING_HANDLER_PATH}/string_handler.c
 PARSER   	= src/parser/parser.y
 PARSER_C 	= build/parser.tab.c
 PARSER_H 	= build/parser.tab.h
-<<<<<<< HEAD
-PARSER_DEP 	= ${PARSER_C} ${COMMON_H} ${SAFEUTIL_H} ${FILEUTIL_H} ${PARSERUTIL_H}
-=======
 PARSER_DEP 	= ${PARSER_C} ${COMMON_H} ${SAFEUTIL_H} ${FILEUTIL_H} ${PARSERUTIL_H} ${CLASS_SYMTAB_H} ${ROUTINE_SYMTAB_H}
->>>>>>> c0c37b5 (implement subroutine level symbol table)
 
 TARGET = compiler
 
@@ -103,12 +88,9 @@ build/parser_util.o: ${PARSERUTIL_DEP}
 build/class_symbol_table.o: ${CLASS_SYMTAB_DEP}
 	gcc ${CLFAGS} -c $< -o $@
 
-<<<<<<< HEAD
-=======
 build/routine_symbol_table.o: ${ROUTINE_SYMTAB_DEP}
 	gcc ${CLFAGS} -c $< -o $@
 
->>>>>>> c0c37b5 (implement subroutine level symbol table)
 build/common.o: ${COMMON_DEP}
 	gcc ${CLFAGS} -c $< -o $@
 

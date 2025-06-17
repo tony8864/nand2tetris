@@ -64,8 +64,6 @@ class_scope_type_to_string(ClassScopeType type) {
 }
 
 char*
-<<<<<<< HEAD
-=======
 routine_scope_type_to_string(RoutineScopeType type) {
     switch (type) {
         case ARG_TYPE: return "arg";
@@ -75,7 +73,6 @@ routine_scope_type_to_string(RoutineScopeType type) {
 }
 
 char*
->>>>>>> c0c37b5 (implement subroutine level symbol table)
 var_type_to_string(VarType* type) {
     VarTypeKind kind = type->kind;
     switch (kind) {

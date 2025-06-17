@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "routine_symbol_table.h"
 #include "class_symbol_table.h"
 #include "parser_util.h"
 #include "file_util.h"
@@ -37,7 +38,7 @@ extern int      yylineno;
     ClassScopeType      classScopeType;
     VarType*            varType;
     SubroutineType      subroutine;
-    ClassVarDecList*    classVarDecList;
+    VarDecList*    VarDecList;
 }
 
 %start program
@@ -57,16 +58,15 @@ extern int      yylineno;
 
 %type<strVal>           className varName
 %type<classScopeType>   classScope
-%type<varType>          varType
+%type<varType>          varType returnType subroutineHeader
 %type<subroutine>       subroutine
-%type<classVarDecList>  classVariables
+%type<VarDecList>       classVariables localVariables
 
 %%
 
 program
     : CLASS className OPEN_CURLY optionalClassVarDecl optionalSubroutineDecl CLOSE_CURLY
         {
-            BISON_DEBUG_PRINT("\tclass definition: %s\n\n", $2);
             free($2);
         }
     ;
@@ -75,6 +75,7 @@ className
         : IDENTIFIER
             {
                 parserutil_validate_class_name($1);
+                BISON_DEBUG_PRINT("\tclass definition: %s\n\n", $1);
                 $$ = $1;
             }
         ;
@@ -93,7 +94,7 @@ classVarDeclaration
                 : classScope varType classVariables SEMICOLON
                     {
                         parserutil_insert_class_variables($1, $2, $3);
-                        parserutil_free_class_var_list($3);
+                        parserutil_free_var_list($3);
                         common_free_vartype($2);
                     }
                 ;
@@ -105,7 +106,7 @@ classVariables
                 }
             | classVariables COMMA varName
                 {
-                    parserutil_append_class_var($1, $3);
+                    parserutil_append_var($1, $3);
                 }
             ;
 
@@ -165,7 +166,13 @@ subroutine
 
 returnType
         : VOID
+            {
+                $$ = NULL;
+            }
         | varType
+            {
+                $$ = $1;
+            }
         ;
 
 optionalSubroutineDecl
@@ -179,11 +186,31 @@ subroutineDeclarations
                     ;
 
 subroutineDeclaration
-                    : subroutine returnType subroutineName OPEN_PAR parameterList CLOSE_PAR subroutineBody
+                    : subroutineHeader OPEN_PAR parameterList CLOSE_PAR subroutineBody
+                        {
+                            routineSymtab_print(ROUTINE_SYMTAB);
+                            routineSymtab_free(ROUTINE_SYMTAB);
+                            common_free_vartype($1);
+                        }
                     ;
+
+subroutineHeader
+                : subroutine returnType subroutineName
+                    {
+                        ROUTINE_SYMTAB = routineSymtab_initialize();
+                        if ($1 == METHOD_TYPE) {
+                            char* className = gbl_context.currentSourceName;
+                            routineSymtab_insert(ROUTINE_SYMTAB, className, ARG_TYPE, NULL);
+                        }
+                        $$ = $2;
+                    }
+                ;
 
 subroutineName
             : IDENTIFIER
+                {
+                    free($1);
+                }
             ;
 
 parameterList
@@ -216,11 +243,22 @@ localVarDeclarations
 
 localVarDeclaration
                 : VAR varType localVariables SEMICOLON
+                    {
+                        parserutil_insert_routine_variables(VAR_TYPE, $2, $3);
+                        parserutil_free_var_list($3);
+                        common_free_vartype($2);
+                    }
                 ;
 
 localVariables
             : varName
+                {
+                    $$ = parserutil_create_class_var_list($1);
+                }
             | localVariables COMMA varName
+                {
+                    parserutil_append_var($1, $3);
+                }
             ;
 
 statements
@@ -391,10 +429,10 @@ parse_file(char* filepath) {
     yyparse();
     fclose(yyin);
 
-    classSymtab_print(gbl_context.classSymbolTable);
+    classSymtab_print(CLASS_SYMTAB);
     
     free_global_context();
-    classSymtab_free(gbl_context.classSymbolTable);
+    classSymtab_free(CLASS_SYMTAB);
 }
 
 static void
@@ -405,7 +443,7 @@ set_global_context_for_file(char* filepath) {
 
 static void
 set_global_context_for_symtables() {
-    gbl_context.classSymbolTable = classSymtab_initialize();
+    CLASS_SYMTAB = classSymtab_initialize();
 }
 
 static void
