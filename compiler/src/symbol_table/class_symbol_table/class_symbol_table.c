@@ -35,6 +35,9 @@ create_entry(ClassVariable* variable);
 static void
 print_row(ClassVariable* variable);
 
+static char*
+class_scope_type_to_string(ClassScopeType type);
+
 static void
 free_entry(ClassSymbolTableEntry* entry);
 
@@ -142,8 +145,17 @@ static void
 print_row(ClassVariable* variable) {
     assert(variable && variable->type);
     char* kind = class_scope_type_to_string(variable->kind);
-    char* type = var_type_to_string(variable->type);
+    char* type = common_var_type_to_string(variable->type);
     printf("%-10s %-10s %-10s %-10u\n", variable->name, kind, type, variable->index);
+}
+
+static char*
+class_scope_type_to_string(ClassScopeType type) {
+    switch (type) {
+        case STATIC_SCOPE: return "static";
+        case FIELD_SCOPE:  return "field";
+        default:           return "unknown";
+    }
 }
 
 static void

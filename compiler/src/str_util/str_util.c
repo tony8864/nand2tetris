@@ -20,3 +20,15 @@ strutil_path_to_source_name(char* path) {
 
     return name;
 }
+
+char*
+strutil_strip_trailing_slash(char* path) {
+    if (!path) return NULL;
+
+    char* copy = safe_strdup(path);
+    size_t len = strlen(copy);
+    if (len > 1 && copy[len - 1] == '/') {
+        copy[len - 1] = '\0';
+    }
+    return copy;
+}

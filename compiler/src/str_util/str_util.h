@@ -4,4 +4,7 @@
 char*
 strutil_path_to_source_name(char* path);
 
+char*
+strutil_strip_trailing_slash(char* path);
+
 #endif

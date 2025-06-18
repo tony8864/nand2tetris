@@ -10,4 +10,7 @@ FILEUTIL_list_files(const char* path, int* count);
 void
 FILEUTIL_free_file_list(char** files, int count);
 
+void
+FILEUTIL_create_vm_file();
+
 #endif

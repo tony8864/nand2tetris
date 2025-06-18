@@ -39,6 +39,9 @@ print_row(RoutineVariable* variable);
 static void
 free_entry(RoutineSymbolTableEntry* entry);
 
+static char*
+routine_scope_type_to_string(RoutineScopeType type);
+
 static unsigned long
 hash_string(char* str);
 
@@ -145,7 +148,7 @@ print_row(RoutineVariable* variable) {
     assert(variable);
     char* kind = routine_scope_type_to_string(variable->kind);
     if (variable->type != NULL) {
-        char* type = var_type_to_string(variable->type);
+        char* type = common_var_type_to_string(variable->type);
         printf("%-10s %-10s %-10s %-10u\n", variable->name, kind, type, variable->index);
     }
     else {
@@ -166,6 +169,15 @@ free_entry(RoutineSymbolTableEntry* entry) {
     }
 
     free(entry);
+}
+
+static char*
+routine_scope_type_to_string(RoutineScopeType type) {
+    switch (type) {
+        case ARG_TYPE: return "arg";
+        case VAR_TYPE: return "var";
+        default:           return "unknown";
+    }
 }
 
 static unsigned long

@@ -1,4 +1,6 @@
-CLFAGS = -Isrc -Isrc/file_util -Isrc/safe_util -Isrc/common -Isrc/lexer -Isrc/parser -Isrc/symbol_table/class_symbol_table -Isrc/symbol_table/routine_symbol_table -Isrc/str_util
+CLFAGS = 	-Isrc -Isrc/file_util -Isrc/safe_util -Isrc/common -Isrc/lexer -Isrc/parser \
+			-Isrc/symbol_table/class_symbol_table -Isrc/symbol_table/routine_symbol_table -Isrc/str_util \
+			-Isrc/emitter
 
 OBJECTS = 	build/parser.o		\
 			build/scanner.o 	\
@@ -6,10 +8,15 @@ OBJECTS = 	build/parser.o		\
 			build/safe_util.o 	\
 			build/common.o 		\
 			build/strutil.o		\
+			build/emitter.o		\
 			build/string_handler.o  \
 			build/parser_util.o 	\
 			build/class_symbol_table.o \
 			build/routine_symbol_table.o
+
+EMITTER_PATH = src/emitter
+EMITTER_H = ${EMITTER_PATH}/emitter.h
+EMITTER_C = ${EMITTER_PATH}/emitter.c
 
 CLASS_SYMTAB_PATH = src/symbol_table/class_symbol_table
 CLASS_SYMTAB_H = ${CLASS_SYMTAB_PATH}/class_symbol_table.h
@@ -34,7 +41,7 @@ STRUTIL_DEP	 = ${STRUTIL_C} ${SAFEUTIL_H}
 PARSERUTIL_PATH = src/parser
 PARSERUTIL_H 	= ${PARSERUTIL_PATH}/parser_util.h
 PARSERUTIL_C	= ${PARSERUTIL_PATH}/parser_util.c
-PARSERUTIL_DEP	= ${PARSERUTIL_C} ${COMMON_H} ${SAFEUTIL_H}
+PARSERUTIL_DEP	= ${PARSERUTIL_C} ${COMMON_H} ${SAFEUTIL_H} ${EMITTER_H}
 
 SAFEUTIL_PATH = src/safe_util
 SAFEUTIL_H    = ${SAFEUTIL_PATH}/safe_util.h
@@ -57,7 +64,7 @@ STRING_HANDLER_C = ${STRING_HANDLER_PATH}/string_handler.c
 PARSER   	= src/parser/parser.y
 PARSER_C 	= build/parser.tab.c
 PARSER_H 	= build/parser.tab.h
-PARSER_DEP 	= ${PARSER_C} ${COMMON_H} ${SAFEUTIL_H} ${FILEUTIL_H} ${PARSERUTIL_H} ${CLASS_SYMTAB_H} ${ROUTINE_SYMTAB_H}
+PARSER_DEP 	= ${PARSER_C} ${COMMON_H} ${SAFEUTIL_H} ${FILEUTIL_H} ${PARSERUTIL_H} ${CLASS_SYMTAB_H} ${ROUTINE_SYMTAB_H} ${EMITTER_H}
 
 TARGET = compiler
 
@@ -82,6 +89,9 @@ build/scanner.c: ${SCANNER}
 build/string_handler.o: ${STRING_HANDLER_C}
 	gcc ${CLFAGS} -c $< -o $@
 
+build/emitter.o: ${EMITTER_C}
+	gcc ${CLFAGS} -c $< -o $@
+
 build/parser_util.o: ${PARSERUTIL_DEP}
 	gcc ${CLFAGS} -c $< -o $@
 
@@ -104,4 +114,4 @@ build/safe_util.o: ${SAFEUTIL_DEP}
 	gcc ${CLFAGS} -c $< -o $@
 
 clean:
-	rm -rf build
+	rm -rf build out

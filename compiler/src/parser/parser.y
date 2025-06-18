@@ -11,12 +11,25 @@
 #include "safe_util.h"
 #include "str_util.h"
 #include "common.h"
+#include "emitter.h"
 
 int yyerror(char* msg);
 int yylex(void);
 
 static void
+set_debugging();
+
+static void
 parse_file(char* filename);
+
+static void
+prepare_compilation(char* filepath);
+
+static void
+finalize_compilation();
+
+static void
+set_lex_globals();
 
 static void
 set_global_context_for_file(char* filepath);
@@ -41,6 +54,9 @@ extern int      yylineno;
     VarDecList*         VarDecList;
     ParamList*          paramList;
     Param*              param;
+    OperationType       opType;
+    Term*               term;
+    OpTerm*             opTerm;
 }
 
 %start program
@@ -65,6 +81,9 @@ extern int      yylineno;
 %type<VarDecList>       classVariables localVariables
 %type<paramList>        parameterList parameters
 %type<param>            param
+%type<opType>           operation
+%type<term>             term
+%type<opTerm>           operationTerm optionalTerm
 
 %%
 
@@ -192,10 +211,12 @@ subroutineDeclarations
 subroutineDeclaration
                     : subroutineHeader OPEN_PAR parameterList CLOSE_PAR subroutineBody
                         {
-                            parserutil_print_param_list($3);
+                            if ($3 != NULL) {
+                                parserutil_print_param_list($3);
+                                parserutil_free_param_list($3);
+                            }
                             routineSymtab_print(ROUTINE_SYMTAB);
                             routineSymtab_free(ROUTINE_SYMTAB);
-                            parserutil_free_param_list($3);
                             common_free_vartype($1);
                         }
                     ;
@@ -335,26 +356,62 @@ optionalArrayExpression
 
 expression
         : term optionalTerm
+            {
+                parserutil_emit_expression($1, $2);
+            }
         ;
 
 optionalTerm
             : optionalTerm operationTerm
+                {
+                    $$ = parserutil_append_op_term($1, $2);
+                }
             | %empty
+                {
+                    $$ = NULL;
+                }
             ;
 
 operationTerm
             : operation term
+                {
+                    $$ = parserutil_create_op_term($1, $2);   
+                }
             ;
 
 term
     : INTEGER
+        {
+            $$ = parserutil_create_int_term($1);
+        }
     | STRING
+        {
+            $$ = NULL;
+        }
     | keywordConst
+        {
+            $$ = NULL;
+        }
     | varName
+        {
+            $$ = parserutil_create_var_term($1);
+        }
     | varName OPEN_BRACKET expression CLOSE_BRACKET
+        {
+            $$ = NULL;
+        }
     | OPEN_PAR expression CLOSE_PAR
+        {
+            $$ = NULL;
+        }
     | unaryOperation term
+        {
+            $$ = NULL;
+        }
     | subroutineCall
+        {
+            $$ = NULL;
+        }
     ;
 
 subroutineCall
@@ -387,14 +444,41 @@ expressions
 
 operation
         : PLUS
+            {
+                $$ = PLUS_OP;
+            }
         | MINUS
+            {
+                $$ = MINUS_OP;
+            }
         | MULT
+            {
+                $$ = UNDEFINED;
+            }
         | DIV
+            {
+                $$ = UNDEFINED;
+            }
         | AND
+            {
+                $$ = AND_OP;
+            }
         | OR
+            {
+                $$ = OR_OP;
+            }
         | LESS
+            {
+                $$ = LESS_OP;
+            }
         | GREATER
+            {
+                $$ = GREATER_OP;
+            }
         | EQUAL
+            {
+                $$ = EQUAL_OP;
+            }
         ;
 
 unaryOperation
@@ -418,10 +502,11 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    common_set_lex_debug_mode(0);
-    common_set_bison_debug_mode(1);
+    set_debugging();
 
     char* input_folder = argv[1];
+    SRC_FOLDER = strutil_strip_trailing_slash(input_folder);
+    OUT_FOLDER = strdup("out");
 
     if (!FILEUTIL_is_directory(input_folder)) {
         printf("Error: input is not a valid folder.\n");
@@ -436,33 +521,53 @@ int main(int argc, char** argv) {
     }
 
     FILEUTIL_free_file_list(files, count);
+    free(SRC_FOLDER);
+    free(OUT_FOLDER);
 
     return 0;
 }
 
 static void
+set_debugging() {
+    common_set_lex_debug_mode(0);
+    common_set_bison_debug_mode(1);
+}
+
+static void
 parse_file(char* filepath) {
     printf("\n\tfile: %s\n", filepath);
+    prepare_compilation(filepath);
+    yyparse();
+    finalize_compilation();
+}
 
+static void
+prepare_compilation(char* filepath) {
     set_global_context_for_symtables();
     set_global_context_for_file(filepath);
+    set_lex_globals();
+    FILEUTIL_create_vm_file();
+}
 
-    yyin = safe_fopen(filepath, "r");
-    yylineno = 1;
-
-    yyparse();
-    fclose(yyin);
-
+static void
+finalize_compilation() {
     classSymtab_print(CLASS_SYMTAB);
-    
+
+    fclose(yyin);
+    fclose(VM_FILE);
     free_global_context();
-    classSymtab_free(CLASS_SYMTAB);
+}
+
+static void
+set_lex_globals() {
+    yyin = safe_fopen(FULL_SRC_PATH, "r");
+    yylineno = 1;
 }
 
 static void
 set_global_context_for_file(char* filepath) {
-    gbl_context.currentFilePath   = safe_strdup(filepath);
-    gbl_context.currentSourceName = strutil_path_to_source_name(filepath);
+    FULL_SRC_PATH   = safe_strdup(filepath);
+    SRC_NAME        = strutil_path_to_source_name(filepath);
 }
 
 static void
@@ -472,8 +577,10 @@ set_global_context_for_symtables() {
 
 static void
 free_global_context() {
-    free(gbl_context.currentFilePath);
-    free(gbl_context.currentSourceName);
+    classSymtab_free(CLASS_SYMTAB);
+    free(FULL_SRC_PATH);
+    free(SRC_NAME);
+    free(VM_NAME);
 }
 
 int

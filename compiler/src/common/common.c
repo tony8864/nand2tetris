@@ -55,25 +55,7 @@ common_free_vartype(VarType* t) {
 }
 
 char*
-class_scope_type_to_string(ClassScopeType type) {
-    switch (type) {
-        case STATIC_SCOPE: return "static";
-        case FIELD_SCOPE:  return "field";
-        default:           return "unknown";
-    }
-}
-
-char*
-routine_scope_type_to_string(RoutineScopeType type) {
-    switch (type) {
-        case ARG_TYPE: return "arg";
-        case VAR_TYPE: return "var";
-        default:           return "unknown";
-    }
-}
-
-char*
-var_type_to_string(VarType* type) {
+common_var_type_to_string(VarType* type) {
     VarTypeKind kind = type->kind;
     switch (kind) {
         case INT_TYPE:      return "int";

@@ -1,5 +1,6 @@
 #include "file_util.h"
 #include "safe_util.h"
+#include "common.h"
 
 #include <sys/stat.h>
 #include <stdio.h>
@@ -58,6 +59,19 @@ FILEUTIL_list_files(const char* path, int* count) {
     free(normalized_folder);
     *count = n;
     return file_list;
+}
+
+void
+FILEUTIL_create_vm_file() {
+    size_t len = strlen(OUT_FOLDER) + strlen(SRC_NAME) + 3 + 1 + 1; // + 3 for ".vm" + 1 for '/' +1 for '\0'
+    char* vm_name = safe_malloc(len + 1);
+
+    snprintf(vm_name, len, "%s/%s.vm", OUT_FOLDER, SRC_NAME);
+    vm_name[len - 1] ='\0';
+
+    mkdir(OUT_FOLDER, 0755);
+    VM_NAME = vm_name;
+    VM_FILE = safe_fopen(vm_name, "w");
 }
 
 void

@@ -31,6 +31,11 @@ typedef struct {
     char* currentFilePath;      // test/Main.jack
     char* currentFileName;      // Main.jack
     char* currentSourceName;    // Main
+    char* sourceFolder;         // test
+
+    char* outputFolderName;
+    char* currentVmFilename;    // Main.vm
+    FILE* vm_file;
 
     ClassSymbolTable*   classSymbolTable;
     RoutineSymbolTable* routineSymbolTable;
@@ -40,6 +45,13 @@ extern CompilerContext gbl_context;
 
 #define ROUTINE_SYMTAB (gbl_context.routineSymbolTable)
 #define CLASS_SYMTAB   (gbl_context.classSymbolTable)
+
+#define OUT_FOLDER      (gbl_context.outputFolderName)
+#define FULL_SRC_PATH   (gbl_context.currentFilePath)
+#define SRC_FOLDER      (gbl_context.sourceFolder)
+#define SRC_NAME        (gbl_context.currentSourceName)
+#define VM_NAME         (gbl_context.currentVmFilename)
+#define VM_FILE         (gbl_context.vm_file)
 
 typedef enum {
     STATIC_SCOPE,
@@ -85,6 +97,36 @@ typedef struct ParamList {
     Param* head;
 } ParamList;
 
+typedef enum {
+    INT_TERM,
+    VAR_TERM
+} TermType;
+
+typedef struct Term {
+    TermType type;
+    union {
+        int int_val;
+        char* var_val;
+    } value;
+} Term;
+
+typedef enum {
+    PLUS_OP,
+    MINUS_OP,
+    AND_OP,
+    OR_OP,
+    LESS_OP,
+    GREATER_OP,
+    EQUAL_OP,
+    UNDEFINED
+} OperationType;
+
+typedef struct OpTerm {
+    Term* term;
+    OperationType op;
+    struct OpTerm* next;
+} OpTerm;
+
 VarType*
 common_create_vartype(VarTypeKind kind, char* name);
 
@@ -95,12 +137,6 @@ void
 common_free_vartype(VarType* t);
 
 char*
-class_scope_type_to_string(ClassScopeType type);
-
-char*
-routine_scope_type_to_string(RoutineScopeType type);
-
-char*
-var_type_to_string(VarType* type);
+common_var_type_to_string(VarType* type);
 
 #endif
