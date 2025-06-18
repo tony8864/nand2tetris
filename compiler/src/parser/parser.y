@@ -57,6 +57,7 @@ extern int      yylineno;
     OperationType       opType;
     Term*               term;
     OpTerm*             opTerm;
+    Expression*         expression;
 }
 
 %start program
@@ -84,6 +85,7 @@ extern int      yylineno;
 %type<opType>           operation
 %type<term>             term
 %type<opTerm>           operationTerm optionalTerm
+%type<expression>       expression
 
 %%
 
@@ -330,6 +332,9 @@ optionalelse
 
 letstatement
             : LET varName optionalArrayExpression EQUAL expression SEMICOLON
+                {
+                    emit_expression($5);
+                }
             ;
 
 whilestatement
@@ -357,7 +362,7 @@ optionalArrayExpression
 expression
         : term optionalTerm
             {
-                parserutil_emit_expression($1, $2);
+                $$ = parserutil_create_expression($1, $2);
             }
         ;
 
@@ -401,8 +406,8 @@ term
             $$ = NULL;
         }
     | OPEN_PAR expression CLOSE_PAR
-        {
-            $$ = NULL;
+        {   
+            $$ = parserutil_create_grouped_term($2);
         }
     | unaryOperation term
         {

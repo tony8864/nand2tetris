@@ -7,6 +7,9 @@ void
 emit(const char* fmt, ...);
 
 void
+emit_expression(Expression* e);
+
+void
 emit_term(Term* term);
 
 void

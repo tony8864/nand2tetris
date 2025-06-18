@@ -156,17 +156,6 @@ parserutil_insert_routine_variables(RoutineScopeType kind, VarType* type, VarDec
     }
 }
 
-void
-parserutil_emit_expression(Term* term, OpTerm* opTerm) {
-    emit_term(term);
-
-    while (opTerm) {
-        emit_term(opTerm->term);
-        emit_op(opTerm->op);
-        opTerm = opTerm->next;
-    }
-}
-
 Term*
 parserutil_create_int_term(int int_val) {
     Term* t = safe_malloc(sizeof(Term));
@@ -183,12 +172,28 @@ parserutil_create_var_term(char* name) {
     return t;
 }
 
+Term*
+parserutil_create_grouped_term(Expression* e) {
+    Term* t = safe_malloc(sizeof(Term));
+    t->type = GROUPED_TERM;
+    t->value.expr_val = e;
+    return t;
+}
+
 OpTerm*
 parserutil_create_op_term(OperationType op, Term* term) {
     OpTerm* opterm = safe_malloc(sizeof(OpTerm));
     opterm->op = op;
     opterm->term = term;
     return opterm;
+}
+
+Expression*
+parserutil_create_expression(Term* term, OpTerm* opTerm) {
+    Expression* e = safe_malloc(sizeof(Expression));
+    e->term = term;
+    e->rest = opTerm;
+    return e;
 }
 
 OpTerm*
