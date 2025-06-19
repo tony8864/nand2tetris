@@ -362,14 +362,14 @@ optionalArrayExpression
 expression
         : term optionalTerm
             {
-                $$ = parserutil_create_expression($1, $2);
+                $$ = emitter_create_expression($1, $2);
             }
         ;
 
 optionalTerm
             : optionalTerm operationTerm
                 {
-                    $$ = parserutil_append_op_term($1, $2);
+                    $$ = emitter_append_op_term($1, $2);
                 }
             | %empty
                 {
@@ -380,14 +380,14 @@ optionalTerm
 operationTerm
             : operation term
                 {
-                    $$ = parserutil_create_op_term($1, $2);   
+                    $$ = emitter_create_op_term($1, $2);   
                 }
             ;
 
 term
     : INTEGER
         {
-            $$ = parserutil_create_int_term($1);
+            $$ = emitter_create_int_term($1);
         }
     | STRING
         {
@@ -399,7 +399,7 @@ term
         }
     | varName
         {
-            $$ = parserutil_create_var_term($1);
+            $$ = emitter_create_var_term($1);
         }
     | varName OPEN_BRACKET expression CLOSE_BRACKET
         {
@@ -407,7 +407,7 @@ term
         }
     | OPEN_PAR expression CLOSE_PAR
         {   
-            $$ = parserutil_create_grouped_term($2);
+            $$ = emitter_create_grouped_term($2);
         }
     | unaryOperation term
         {

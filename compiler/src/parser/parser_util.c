@@ -156,58 +156,6 @@ parserutil_insert_routine_variables(RoutineScopeType kind, VarType* type, VarDec
     }
 }
 
-Term*
-parserutil_create_int_term(int int_val) {
-    Term* t = safe_malloc(sizeof(Term));
-    t->type = INT_TERM;
-    t->value.int_val = int_val;
-    return t;
-}
-
-Term*
-parserutil_create_var_term(char* name) {
-    Term* t = safe_malloc(sizeof(Term));
-    t->type = VAR_TERM;
-    t->value.var_val = strdup(name);
-    return t;
-}
-
-Term*
-parserutil_create_grouped_term(Expression* e) {
-    Term* t = safe_malloc(sizeof(Term));
-    t->type = GROUPED_TERM;
-    t->value.expr_val = e;
-    return t;
-}
-
-OpTerm*
-parserutil_create_op_term(OperationType op, Term* term) {
-    OpTerm* opterm = safe_malloc(sizeof(OpTerm));
-    opterm->op = op;
-    opterm->term = term;
-    return opterm;
-}
-
-Expression*
-parserutil_create_expression(Term* term, OpTerm* opTerm) {
-    Expression* e = safe_malloc(sizeof(Expression));
-    e->term = term;
-    e->rest = opTerm;
-    return e;
-}
-
-OpTerm*
-parserutil_append_op_term(OpTerm* list, OpTerm* node) {
-    if (!list) return node;
-
-    OpTerm* cur = list;
-    while (cur->next) {
-        cur = cur->next;
-    }
-    cur->next = node;
-    return list;
-}
-
 static void
 check_class_var_redeclared(char* name) {
     if (classSymtab_lookup(CLASS_SYMTAB, name) != NULL) {

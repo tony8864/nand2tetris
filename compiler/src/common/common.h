@@ -97,20 +97,9 @@ typedef struct ParamList {
     Param* head;
 } ParamList;
 
-typedef enum {
-    INT_TERM,
-    VAR_TERM,
-    GROUPED_TERM
-} TermType;
-
-typedef struct Term {
-    TermType type;
-    union {
-        int int_val;
-        char* var_val;
-        struct Expression* expr_val;
-    } value;
-} Term;
+typedef struct Term Term;
+typedef struct OpTerm OpTerm;
+typedef struct Expression Expression;
 
 typedef enum {
     PLUS_OP,
@@ -123,16 +112,11 @@ typedef enum {
     UNDEFINED
 } OperationType;
 
-typedef struct OpTerm {
-    Term* term;
-    OperationType op;
-    struct OpTerm* next;
-} OpTerm;
-
-typedef struct Expression {
-    Term* term;
-    OpTerm* rest;
-} Expression;
+typedef enum {
+    INT_TERM,
+    VAR_TERM,
+    GROUPED_TERM
+} TermType;
 
 VarType*
 common_create_vartype(VarTypeKind kind, char* name);

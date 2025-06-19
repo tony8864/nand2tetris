@@ -43,22 +43,4 @@ parserutil_insert_routine_variables(RoutineScopeType kind, VarType* type, VarDec
 void
 parserutil_insert_parameters(ParamList* list);
 
-Term*
-parserutil_create_int_term(int int_val);
-
-Term*
-parserutil_create_var_term(char* name);
-
-Term*
-parserutil_create_grouped_term(Expression* e);
-
-OpTerm*
-parserutil_create_op_term(OperationType op, Term* term);
-
-Expression*
-parserutil_create_expression(Term* term, OpTerm* opTerm);
-
-OpTerm*
-parserutil_append_op_term(OpTerm* list, OpTerm* node);
-
 #endif

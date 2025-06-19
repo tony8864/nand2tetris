@@ -17,6 +17,7 @@ OBJECTS = 	build/parser.o		\
 EMITTER_PATH = src/emitter
 EMITTER_H = ${EMITTER_PATH}/emitter.h
 EMITTER_C = ${EMITTER_PATH}/emitter.c
+EMITTER_DEP = ${EMITTER_C} ${SAFEUTIL_H}
 
 CLASS_SYMTAB_PATH = src/symbol_table/class_symbol_table
 CLASS_SYMTAB_H = ${CLASS_SYMTAB_PATH}/class_symbol_table.h
@@ -89,7 +90,7 @@ build/scanner.c: ${SCANNER}
 build/string_handler.o: ${STRING_HANDLER_C}
 	gcc ${CLFAGS} -c $< -o $@
 
-build/emitter.o: ${EMITTER_C}
+build/emitter.o: ${EMITTER_DEP}
 	gcc ${CLFAGS} -c $< -o $@
 
 build/parser_util.o: ${PARSERUTIL_DEP}
