@@ -18,4 +18,10 @@ routineSymtab_print(RoutineSymbolTable* table);
 void
 routineSymtab_free(RoutineSymbolTable* table);
 
+char*
+routineSymtab_get_str_kind(RoutineSymbolTableEntry* entry);
+
+unsigned
+routineSymtab_get_entry_index(RoutineSymbolTableEntry* entry);
+
 #endif

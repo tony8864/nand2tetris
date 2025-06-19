@@ -124,6 +124,20 @@ routineSymtab_free(RoutineSymbolTable* table) {
     free(table);
 }
 
+char*
+routineSymtab_get_str_kind(RoutineSymbolTableEntry* entry) {
+    switch (entry->variable->kind) {
+        case ARG_TYPE: return "argument";
+        case VAR_TYPE: return "local";
+        default:           return "unknown";
+    }
+}
+
+unsigned
+routineSymtab_get_entry_index(RoutineSymbolTableEntry* entry) {
+    return entry->variable->index;
+}
+
 static RoutineVariable*
 create_variable(char* name, RoutineScopeType kind, VarType* type, unsigned index) {
     RoutineVariable* variable = safe_malloc(sizeof(RoutineVariable));

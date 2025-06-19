@@ -333,7 +333,7 @@ optionalelse
 letstatement
             : LET varName optionalArrayExpression EQUAL expression SEMICOLON
                 {
-                    emit_expression($5);
+                    emitter_generate_let_statement($2, $5);
                 }
             ;
 

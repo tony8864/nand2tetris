@@ -4,7 +4,7 @@
 #include "common.h"
 
 void
-emit_expression(Expression* e);
+emitter_generate_let_statement(char* varName, Expression* e);
 
 Term*
 emitter_create_int_term(int int_val);

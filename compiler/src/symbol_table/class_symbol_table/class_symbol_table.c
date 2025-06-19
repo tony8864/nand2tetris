@@ -122,6 +122,20 @@ classSymtab_free(ClassSymbolTable* table) {
     free(table);
 }
 
+void
+classSymtab_get_str_kind(ClassSymbolTableEntry* entry) {
+    // switch (entry->variable=>kind) {
+    //     case STATIC_SCOPE: return "static";
+    //     case FIELD_SCOPE:  return "field";
+    //     default:           return "unknown";
+    // }
+}
+
+unsigned
+classSymtab_get_entry_index(ClassSymbolTableEntry* entry) {
+    return entry->variable->index;
+}
+
 static ClassVariable*
 create_variable(char* name, ClassScopeType kind, VarType* type, unsigned index) {
     ClassVariable* variable = safe_malloc(sizeof(ClassVariable));

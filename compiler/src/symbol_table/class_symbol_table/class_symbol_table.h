@@ -18,4 +18,10 @@ classSymtab_print(ClassSymbolTable* table);
 void
 classSymtab_free(ClassSymbolTable* table);
 
+void
+classSymtab_get_str_kind(ClassSymbolTableEntry* entry);
+
+unsigned
+classSymtab_get_entry_index(ClassSymbolTableEntry* entry);
+
 #endif

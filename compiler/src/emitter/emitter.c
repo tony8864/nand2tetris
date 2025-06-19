@@ -1,3 +1,5 @@
+#include "routine_symbol_table.h"
+#include "class_symbol_table.h"
 #include "safe_util.h"
 #include "emitter.h"
 
@@ -26,8 +28,13 @@ typedef struct Expression {
     OpTerm* rest;
 } Expression;
 
+extern int yylineno;
+
 static void
 emit(const char* fmt, ...);
+
+static void
+emit_expression(Expression* e);
 
 static void
 emit_term(Term* term);
@@ -38,12 +45,22 @@ emit_opTermList(OpTerm* opTerm);
 static void
 emit_op(OperationType op);
 
+static void
+emit_variable(char* name, char* op);
+
+static void
+emit_routine_var(RoutineSymbolTableEntry* entry, char* op);
+
+static void
+emit_class_var(ClassSymbolTableEntry* entry);
+
+static void
+emit_var_access(char* op, char* kind, unsigned index);
+
 void
-emit_expression(Expression* e) {
-    Term* term = e->term;
-    OpTerm* opTerm = e->rest;
-    emit_term(term);
-    emit_opTermList(opTerm);
+emitter_generate_let_statement(char* varName, Expression* e) {
+    emit_expression(e);
+    emit_variable(varName, "pop");
 }
 
 Term*
@@ -113,10 +130,22 @@ emit_term(Term* term) {
             emit("push constant %d\n", term->value.int_val);
             break;
         }
+        case VAR_TERM: {
+            emit_variable(term->value.var_val, "push");
+            break;
+        }
         case GROUPED_TERM: {
             emit_expression(term->value.expr_val);
         }
     }
+}
+
+static void
+emit_expression(Expression* e) {
+    Term* term = e->term;
+    OpTerm* opTerm = e->rest;
+    emit_term(term);
+    emit_opTermList(opTerm);
 }
 
 static  void
@@ -135,4 +164,39 @@ emit_op(OperationType op) {
         case MINUS_OP:  emit("sub\n"); break;
         default: printf("Error: Unexpected operation type.\n"); exit(1);
     }
+}
+
+static void
+emit_variable(char* name, char* op) {
+    RoutineSymbolTableEntry* routineEntry = routineSymtab_lookup(ROUTINE_SYMTAB, name);
+    if (routineEntry != NULL) {
+        emit_routine_var(routineEntry, op);
+        return;
+    }
+
+    ClassSymbolTableEntry* classEntry = classSymtab_lookup(CLASS_SYMTAB, name);
+    if (classEntry != NULL) {
+        emit_class_var(classEntry);
+        return;
+    }
+
+    printf("Error: Undeclared variable \"%s\" at line %d\n", name, yylineno);
+    exit(1);
+}
+
+static void
+emit_routine_var(RoutineSymbolTableEntry* entry, char* op) {
+    unsigned index = routineSymtab_get_entry_index(entry);
+    char*    kind  = routineSymtab_get_str_kind(entry);
+    emit_var_access(op, kind, index);
+}
+
+static void
+emit_class_var(ClassSymbolTableEntry* entry) {
+    
+}
+
+static void
+emit_var_access(char* op, char* kind, unsigned index) {
+    emit("%s %s %u\n", op, kind, index);
 }
