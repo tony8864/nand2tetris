@@ -8,12 +8,18 @@
 #include <stdarg.h>
 #include <assert.h>
 
+typedef struct UnaryTerm {
+    Term* term;
+    UnaryOperationType op;
+} UnaryTerm;
+
 typedef struct Term {
     TermType type;
     union {
         int int_val;
         char* var_val;
         struct Expression* expr_val;
+        struct UnaryTerm*  unary_val;
     } value;
 } Term;
 
@@ -34,6 +40,9 @@ static void
 emit(const char* fmt, ...);
 
 static void
+emit_unary_term(Term* term);
+
+static void
 emit_expression(Expression* e);
 
 static void
@@ -44,6 +53,11 @@ emit_opTermList(OpTerm* opTerm);
 
 static void
 emit_op(OperationType op);
+
+static void
+emit_unary_term(Term* term);
+static void
+emit_unary_op(UnaryOperationType op);
 
 static void
 emit_variable(char* name, char* op);
@@ -95,6 +109,17 @@ emitter_create_op_term(OperationType op, Term* term) {
     return opterm;
 }
 
+Term*
+emitter_create_unary_term(UnaryOperationType op, Term* term) {
+    Term* t = safe_malloc(sizeof(Term));
+    UnaryTerm* ut = safe_malloc(sizeof(UnaryTerm));
+    ut->term = term;
+    ut->op = op;
+    t->value.unary_val = ut;
+    t->type = UNARY_TERM;
+    return t;
+}
+
 Expression*
 emitter_create_expression(Term* term, OpTerm* opTerm) {
     Expression* e = safe_malloc(sizeof(Expression));
@@ -136,7 +161,34 @@ emit_term(Term* term) {
         }
         case GROUPED_TERM: {
             emit_expression(term->value.expr_val);
+            break;
         }
+        case UNARY_TERM: {
+            emit_unary_term(term);
+            break;
+        }
+    }
+}
+
+static void
+emit_unary_term(Term* term) {
+    UnaryTerm* unary = term->value.unary_val;
+    emit_term(unary->term);
+    emit_unary_op(unary->op);
+}
+
+static void
+emit_unary_op(UnaryOperationType op) {
+    switch(op) {
+        case UNARY_MINUS: {
+            emit("neg\n");
+            break;
+        }
+        case UNARY_NEG: {
+            emit("not\n");
+            break;
+        }
+        default: printf("Error: Unrecognized unary op.\n"); exit(1);
     }
 }
 

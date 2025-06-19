@@ -115,8 +115,14 @@ typedef enum {
 typedef enum {
     INT_TERM,
     VAR_TERM,
-    GROUPED_TERM
+    GROUPED_TERM,
+    UNARY_TERM
 } TermType;
+
+typedef enum {
+    UNARY_MINUS,
+    UNARY_NEG
+} UnaryOperationType;
 
 VarType*
 common_create_vartype(VarTypeKind kind, char* name);

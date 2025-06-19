@@ -58,6 +58,7 @@ extern int      yylineno;
     Term*               term;
     OpTerm*             opTerm;
     Expression*         expression;
+    UnaryOperationType  unaryOp;
 }
 
 %start program
@@ -86,6 +87,7 @@ extern int      yylineno;
 %type<term>             term
 %type<opTerm>           operationTerm optionalTerm
 %type<expression>       expression
+%type<unaryOp>          unaryOperation
 
 %%
 
@@ -411,7 +413,7 @@ term
         }
     | unaryOperation term
         {
-            $$ = NULL;
+            $$ = emitter_create_unary_term($1, $2);
         }
     | subroutineCall
         {
@@ -488,7 +490,13 @@ operation
 
 unaryOperation
             : MINUS
+                {
+                    $$ = UNARY_MINUS;
+                }
             | NEG
+                {
+                    $$ = UNARY_NEG;
+                }
             ;
 
 keywordConst
