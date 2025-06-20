@@ -58,6 +58,8 @@ extern int      yylineno;
     Term*               term;
     OpTerm*             opTerm;
     Expression*         expression;
+    ExpressionList*     expressionList;
+    SubroutineCall*     subroutineCall;
     UnaryOperationType  unaryOp;
 }
 
@@ -76,7 +78,7 @@ extern int      yylineno;
 %token<strVal> STRING
 %token<strVal> IDENTIFIER
 
-%type<strVal>           className varName
+%type<strVal>           className varName subroutineName
 %type<classScopeType>   classScope
 %type<varType>          varType returnType subroutineHeader
 %type<subroutine>       subroutine
@@ -87,7 +89,9 @@ extern int      yylineno;
 %type<term>             term
 %type<opTerm>           operationTerm optionalTerm
 %type<expression>       expression
+%type<expressionList>   expressionList optionalExpressionList
 %type<unaryOp>          unaryOperation
+%type<subroutineCall>   subroutineCall directcall methodcall
 
 %%
 
@@ -240,7 +244,7 @@ subroutineHeader
 subroutineName
             : IDENTIFIER
                 {
-                    free($1);
+                    $$ = $1;
                 }
             ;
 
@@ -417,36 +421,56 @@ term
         }
     | subroutineCall
         {
-            $$ = NULL;
+            $$ = emitter_create_subroutine_term($1);
         }
     ;
 
 subroutineCall
             : directcall
+                {
+                    $$ = $1;
+                }
             | methodcall
+                {
+                    $$ = $1;
+                }
             ;
 
 directcall
         : subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
+            {   
+                $$ = emitter_create_direct_call($1, $3);
+            }
         ;
 
 
 methodcall
-        : IDENTIFIER DOT subroutineName  OPEN_PAR optionalExpressionList CLOSE_PAR
+        : IDENTIFIER DOT subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
+            {
+                $$ = emitter_create_method_call($1, $3, $5);
+            }
         ;
 
 optionalExpressionList
                     : expressionList
+                        {
+                            $$ = $1;
+                        }
                     | %empty
+                        {
+                            $$ = NULL;
+                        }
                     ;
 
 expressionList
-            : expressions
-            ;
-
-expressions
         : expression
-        | expressions COMMA expression
+            {
+                $$ = emitter_create_expressionList($1);
+            }
+        | expressionList COMMA expression
+            {
+                $$ = emiiter_append_expression($1, $3);
+            }
         ;
 
 operation

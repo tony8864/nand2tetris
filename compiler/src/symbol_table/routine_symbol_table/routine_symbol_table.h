@@ -24,4 +24,7 @@ routineSymtab_get_str_kind(RoutineSymbolTableEntry* entry);
 unsigned
 routineSymtab_get_entry_index(RoutineSymbolTableEntry* entry);
 
+VarType*
+routineSymtab_get_vartype(RoutineSymbolTableEntry* entry);
+
 #endif

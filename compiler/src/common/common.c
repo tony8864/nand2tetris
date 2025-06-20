@@ -43,6 +43,11 @@ common_copy_vartype(VarType* original) {
     return copy;
 }
 
+char*
+common_get_classname_from_type(VarType* type) {
+    return type->className;
+}
+
 void
 common_free_vartype(VarType* t) {
     if (!t) return;

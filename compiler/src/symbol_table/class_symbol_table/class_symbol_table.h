@@ -24,4 +24,7 @@ classSymtab_get_str_kind(ClassSymbolTableEntry* entry);
 unsigned
 classSymtab_get_entry_index(ClassSymbolTableEntry* entry);
 
+VarType*
+classSymtab_get_vartype(ClassSymbolTableEntry* entry);
+
 #endif

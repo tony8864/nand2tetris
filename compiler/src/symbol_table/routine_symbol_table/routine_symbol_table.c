@@ -138,6 +138,11 @@ routineSymtab_get_entry_index(RoutineSymbolTableEntry* entry) {
     return entry->variable->index;
 }
 
+VarType*
+routineSymtab_get_vartype(RoutineSymbolTableEntry* entry) {
+    return entry->variable->type;
+}
+
 static RoutineVariable*
 create_variable(char* name, RoutineScopeType kind, VarType* type, unsigned index) {
     RoutineVariable* variable = safe_malloc(sizeof(RoutineVariable));

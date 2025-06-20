@@ -100,6 +100,8 @@ typedef struct ParamList {
 typedef struct Term Term;
 typedef struct OpTerm OpTerm;
 typedef struct Expression Expression;
+typedef struct ExpressionList ExpressionList;
+typedef struct SubroutineCall SubroutineCall;
 
 typedef enum {
     PLUS_OP,
@@ -116,7 +118,8 @@ typedef enum {
     INT_TERM,
     VAR_TERM,
     GROUPED_TERM,
-    UNARY_TERM
+    UNARY_TERM,
+    SUBROUTINE_TERM
 } TermType;
 
 typedef enum {
@@ -129,6 +132,9 @@ common_create_vartype(VarTypeKind kind, char* name);
 
 VarType*
 common_copy_vartype(VarType* original);
+
+char*
+common_get_classname_from_type(VarType* type);
 
 void
 common_free_vartype(VarType* t);

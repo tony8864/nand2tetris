@@ -18,13 +18,31 @@ emitter_create_grouped_term(Expression* e);
 OpTerm*
 emitter_create_op_term(OperationType op, Term* term);
 
-Term*
-emitter_create_unary_term(UnaryOperationType op, Term* term);
+OpTerm*
+emitter_append_op_term(OpTerm* list, OpTerm* node);
 
 Expression*
 emitter_create_expression(Term* term, OpTerm* opTerm);
 
-OpTerm*
-emitter_append_op_term(OpTerm* list, OpTerm* node);
+ExpressionList*
+emitter_create_expressionList(Expression* expr);
+
+ExpressionList*
+emiiter_append_expression(ExpressionList* list, Expression* e);
+
+void
+emitter_print_expression_list(ExpressionList* list);
+
+SubroutineCall*
+emitter_create_direct_call(char* subroutineName, ExpressionList* exprList);
+
+SubroutineCall*
+emitter_create_method_call(char* caller, char* subroutineName, ExpressionList* exprList);
+
+Term*
+emitter_create_subroutine_term(SubroutineCall* call);
+
+Term*
+emitter_create_unary_term(UnaryOperationType op, Term* term);
 
 #endif

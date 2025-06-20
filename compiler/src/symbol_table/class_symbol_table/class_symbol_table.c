@@ -136,6 +136,11 @@ classSymtab_get_entry_index(ClassSymbolTableEntry* entry) {
     return entry->variable->index;
 }
 
+VarType*
+classSymtab_get_vartype(ClassSymbolTableEntry* entry) {
+    return entry->variable->type;
+}
+
 static ClassVariable*
 create_variable(char* name, ClassScopeType kind, VarType* type, unsigned index) {
     ClassVariable* variable = safe_malloc(sizeof(ClassVariable));

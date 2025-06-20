@@ -20,6 +20,7 @@ typedef struct Term {
         char* var_val;
         struct Expression* expr_val;
         struct UnaryTerm*  unary_val;
+        struct SubroutineCall* call_val;
     } value;
 } Term;
 
@@ -34,13 +35,36 @@ typedef struct Expression {
     OpTerm* rest;
 } Expression;
 
+typedef struct ExpressionList {
+    Expression* expr;
+    struct ExpressionList* next;
+} ExpressionList;
+
+typedef struct SubroutineCall {
+    char* subroutineName;
+    ExpressionList* exprList;
+    char* caller; // NULL if the call is direct
+} SubroutineCall;
+
 extern int yylineno;
 
 static void
 emit(const char* fmt, ...);
 
 static void
-emit_unary_term(Term* term);
+emit_subroutine_term(SubroutineCall* call);
+
+static void
+emit_expression_list(ExpressionList* list);
+
+static void
+emit_subroutine_call(SubroutineCall* call);
+
+static VarType*
+get_vartype_from_name(char* name);
+
+static void
+emit_unary_term(UnaryTerm* unary);
 
 static void
 emit_expression(Expression* e);
@@ -55,8 +79,6 @@ static void
 emit_op(OperationType op);
 
 static void
-emit_unary_term(Term* term);
-static void
 emit_unary_op(UnaryOperationType op);
 
 static void
@@ -70,6 +92,12 @@ emit_class_var(ClassSymbolTableEntry* entry);
 
 static void
 emit_var_access(char* op, char* kind, unsigned index);
+
+static unsigned
+get_expr_list_len(ExpressionList* list);
+
+static unsigned
+is_in_symbol_table(char* name);
 
 void
 emitter_generate_let_statement(char* varName, Expression* e) {
@@ -110,6 +138,14 @@ emitter_create_op_term(OperationType op, Term* term) {
 }
 
 Term*
+emitter_create_subroutine_term(SubroutineCall* call) {
+    Term* t = safe_malloc(sizeof(Term));
+    t->type = SUBROUTINE_TERM;
+    t->value.call_val = call;
+    return t;
+}
+
+Term*
 emitter_create_unary_term(UnaryOperationType op, Term* term) {
     Term* t = safe_malloc(sizeof(Term));
     UnaryTerm* ut = safe_malloc(sizeof(UnaryTerm));
@@ -126,6 +162,60 @@ emitter_create_expression(Term* term, OpTerm* opTerm) {
     e->term = term;
     e->rest = opTerm;
     return e;
+}
+
+ExpressionList*
+emitter_create_expressionList(Expression* expr) {
+    ExpressionList* list = safe_malloc(sizeof(ExpressionList));
+    list->expr = expr;
+    list->next = NULL;
+    return list;
+}
+
+ExpressionList*
+emiiter_append_expression(ExpressionList* list, Expression* e) {
+    ExpressionList* node = emitter_create_expressionList(e);
+    if (!list) return node;
+
+    ExpressionList* cur = list;
+    while (cur->next) {
+        cur = cur->next;
+    }
+    cur->next = node;
+    return list;
+}
+
+void
+emitter_print_expression_list(ExpressionList* list) {
+    printf("list: \n");
+    while (list) {
+        Term* t = list->expr->term;
+        if (t == NULL) {
+            printf("bad\n");
+        }
+        int i  = t->value.int_val;
+        printf("(val: %d) ", i);
+        list = list->next;
+    }
+    printf("\n");
+}
+
+SubroutineCall*
+emitter_create_direct_call(char* subroutineName, ExpressionList* exprList) {
+    SubroutineCall* subcall = safe_malloc(sizeof(SubroutineCall));
+    subcall->subroutineName = safe_strdup(subroutineName);
+    subcall->exprList = exprList;
+    subcall->caller = NULL;
+    return subcall;
+}
+
+SubroutineCall*
+emitter_create_method_call(char* caller, char* subroutineName, ExpressionList* exprList) {
+    SubroutineCall* subcall = safe_malloc(sizeof(SubroutineCall));
+    subcall->subroutineName = safe_strdup(subroutineName);
+    subcall->exprList = exprList;
+    subcall->caller = safe_strdup(caller);
+    return subcall;
 }
 
 OpTerm*
@@ -164,15 +254,45 @@ emit_term(Term* term) {
             break;
         }
         case UNARY_TERM: {
-            emit_unary_term(term);
+            emit_unary_term(term->value.unary_val);
+            break;
+        }
+        case SUBROUTINE_TERM: {
+            emit_subroutine_term(term->value.call_val);
             break;
         }
     }
 }
 
 static void
-emit_unary_term(Term* term) {
-    UnaryTerm* unary = term->value.unary_val;
+emit_subroutine_term(SubroutineCall* call) {
+    emit_expression_list(call->exprList);
+    emit_subroutine_call(call);
+}
+
+static void
+emit_expression_list(ExpressionList* list) {
+    while (list) {
+        emit_expression(list->expr);
+        list = list->next;
+    }
+}
+
+static void
+emit_subroutine_call(SubroutineCall* call) {
+    unsigned argsCount = get_expr_list_len(call->exprList);
+    if (is_in_symbol_table(call->caller)) {
+        VarType* type = get_vartype_from_name(call->caller);
+        char* className = common_get_classname_from_type(type);
+        emit("call %s.%s %u\n", className, call->subroutineName, argsCount);
+    }
+    else {
+        emit("call %s.%s %u\n", call->caller, call->subroutineName, argsCount);
+    }
+}
+
+static void
+emit_unary_term(UnaryTerm* unary) {
     emit_term(unary->term);
     emit_unary_op(unary->op);
 }
@@ -251,4 +371,36 @@ emit_class_var(ClassSymbolTableEntry* entry) {
 static void
 emit_var_access(char* op, char* kind, unsigned index) {
     emit("%s %s %u\n", op, kind, index);
+}
+
+static unsigned
+get_expr_list_len(ExpressionList* list) {
+    unsigned i = 0;
+    while (list) {
+        list = list->next;
+        i++;
+    }
+    return i;
+}
+
+static unsigned
+is_in_symbol_table(char* name) {
+    return (classSymtab_lookup(CLASS_SYMTAB, name) != NULL ||
+    routineSymtab_lookup(ROUTINE_SYMTAB, name) != NULL);
+}
+
+static VarType*
+get_vartype_from_name(char* name) {
+    ClassSymbolTableEntry* classEntry = classSymtab_lookup(CLASS_SYMTAB, name);
+    if (classEntry != NULL) {
+        return classSymtab_get_vartype(classEntry);
+    }
+
+    RoutineSymbolTableEntry* routineEntry = routineSymtab_lookup(ROUTINE_SYMTAB, name);
+    if (routineEntry != NULL) {
+        return routineSymtab_get_vartype(routineEntry);
+    }
+
+    printf("Error: Could not retrieve variable type from symbol tables.\n");
+    exit(1);
 }
