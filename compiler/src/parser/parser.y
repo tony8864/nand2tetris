@@ -88,7 +88,7 @@ extern int      yylineno;
 %type<opType>           operation
 %type<term>             term
 %type<opTerm>           operationTerm optionalTerm
-%type<expression>       expression
+%type<expression>       expression opetionalReturnExpression
 %type<expressionList>   expressionList optionalExpressionList
 %type<unaryOp>          unaryOperation
 %type<subroutineCall>   subroutineCall directcall methodcall
@@ -349,15 +349,27 @@ whilestatement
 
 dostatement
         : DO subroutineCall SEMICOLON
+            {
+                emitter_generate_do_statement($2);
+            }
         ;
 
 returnstatement
             : RETURN opetionalReturnExpression SEMICOLON
+                {
+                    emitter_generate_return_statement($2);
+                }
             ;
 
 opetionalReturnExpression
                         : expression
+                            {
+                                $$ = $1;
+                            }
                         | %empty
+                            {
+                                $$ = NULL;
+                            }
                         ;
 
 optionalArrayExpression

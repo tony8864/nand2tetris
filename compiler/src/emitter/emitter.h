@@ -6,6 +6,12 @@
 void
 emitter_generate_let_statement(char* varName, Expression* e);
 
+void
+emitter_generate_return_statement(Expression* e);
+
+void
+emitter_generate_do_statement(SubroutineCall* call);
+
 Term*
 emitter_create_int_term(int int_val);
 

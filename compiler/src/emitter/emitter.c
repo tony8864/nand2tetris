@@ -105,6 +105,24 @@ emitter_generate_let_statement(char* varName, Expression* e) {
     emit_variable(varName, "pop");
 }
 
+void
+emitter_generate_return_statement(Expression* e) {
+    if (e == NULL) {
+        emit("push constant 0\n");
+        emit("return\n");
+    }
+    else {
+        emit_expression(e);
+        emit("return\n");
+    }
+}
+
+void
+emitter_generate_do_statement(SubroutineCall* call) {
+    emit_subroutine_call(call);
+    emit("pop temp 0\n");
+}
+
 Term*
 emitter_create_int_term(int int_val) {
     Term* t = safe_malloc(sizeof(Term));
