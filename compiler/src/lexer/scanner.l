@@ -66,8 +66,8 @@ comment         "//".*
 "&"             { LEX_DEBUG_PRINT("arithm: and\n");         return AND; }
 "|"             { LEX_DEBUG_PRINT("arithm: or\n");          return OR; }
 
-">"             { LEX_DEBUG_PRINT("rel: gr\n");             return LESS; }
-"<"             { LEX_DEBUG_PRINT("rel: ls\n");             return GREATER; }
+">"             { LEX_DEBUG_PRINT("rel: gr\n");             return GREATER; }
+"<"             { LEX_DEBUG_PRINT("rel: ls\n");             return LESS; }
 "="             { LEX_DEBUG_PRINT("rel: eq\n");             return EQUAL; }
 "~"             { LEX_DEBUG_PRINT("rel: ng\n");             return NEG; }
 

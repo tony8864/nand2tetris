@@ -328,8 +328,22 @@ statement
         ;
 
 ifstatement
-        : IF OPEN_PAR expression CLOSE_PAR OPEN_CURLY statements CLOSE_CURLY optionalelse
+        : ifHead OPEN_CURLY statements 
+            {
+                emitter_generate_after_if_statements();
+            }
+          CLOSE_CURLY optionalelse
+            {
+                emitter_generate_after_optionalElse();
+            }
         ;
+
+ifHead
+    : IF OPEN_PAR expression CLOSE_PAR
+        {
+            emitter_generate_if_expression($3);
+        }
+    ;
 
 optionalelse
             : ELSE OPEN_CURLY statements CLOSE_CURLY
