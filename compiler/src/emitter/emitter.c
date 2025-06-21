@@ -49,6 +49,7 @@ typedef struct SubroutineCall {
 extern int yylineno;
 
 static unsigned if_label_count = 0;
+static unsigned while_label_count = 0;
 
 static void
 emit(const char* fmt, ...);
@@ -104,12 +105,52 @@ is_in_symbol_table(char* name);
 static char*
 generate_if_label();
 
+static char*
+generate_while_label();
+
+static void
+free_expression(Expression* e);
+
+static void
+free_term(Term* t);
+
+static void
+free_opterm(OpTerm* opt);
+
+static void
+free_subroutine_call(SubroutineCall* call);
+
+static void
+free_expression_list(ExpressionList* list);
+
+void
+emitter_free_let_statement(char* varName, Expression* e) {
+    free_expression(e);
+    free(varName);
+}
+
+void
+emitter_free_if_expression(Expression* e) {
+    free_expression(e);
+}
+
+void
+emitter_free_while_expression(Expression* e) {
+    free_expression(e);
+}
+
+void
+emitter_free_do_statement(SubroutineCall* call) {
+    free_subroutine_call(call);
+}
+
 void
 emitter_generate_if_expression(Expression* e) {
     char* label = generate_if_label();
     emit_expression(e);
     emit("not\n");
     emit("if-goto %s\n", label);
+    free(label);
 }
 
 void
@@ -119,6 +160,8 @@ emitter_generate_after_if_statements() {
     char* label2 = generate_if_label();
     emit("goto %s\n", label2);
     emit("label %s\n", label1);
+    free(label1);
+    free(label2);
 }
 
 void
@@ -126,6 +169,33 @@ emitter_generate_after_optionalElse() {
     char* label2 = generate_if_label();
     emit("label %s\n", label2);
     if_label_count++;
+    free(label2);
+}
+
+void
+emitter_generate_while_expression(Expression* e) {
+    char* label1 = generate_while_label();
+    while_label_count++;
+    emit("label %s\n", label1);
+    emit_expression(e);
+    emit("not\n");
+    char* label2 = generate_while_label();
+    emit("if-goto %s\n", label2);
+    free(label1);
+    free(label2);
+}
+
+void
+emitter_generate_after_while_statements() {
+    while_label_count--;
+    char* label1 = generate_while_label();
+    while_label_count++;
+    char* label2 = generate_while_label();
+    while_label_count++;
+    emit("goto %s\n", label1);
+    emit("label %s\n", label2);
+    free(label1);
+    free(label2);
 }
 
 void
@@ -148,6 +218,7 @@ emitter_generate_return_statement(Expression* e) {
 
 void
 emitter_generate_do_statement(SubroutineCall* call) {
+    emit_expression_list(call->exprList);
     emit_subroutine_call(call);
     emit("pop temp 0\n");
 }
@@ -181,6 +252,7 @@ emitter_create_op_term(OperationType op, Term* term) {
     OpTerm* opterm = safe_malloc(sizeof(OpTerm));
     opterm->op = op;
     opterm->term = term;
+    opterm->next = NULL;
     return opterm;
 }
 
@@ -462,4 +534,81 @@ generate_if_label() {
     char* label = malloc(32);
     snprintf(label, 32, "IF_LABEL_%d", if_label_count);
     return label;
+}
+
+static char*
+generate_while_label() {
+    char* label = malloc(32);
+    snprintf(label, 32, "WHILE_LABEL_%d", while_label_count);
+    return label;
+}
+
+static void
+free_expression(Expression* e) {
+    Term* t = e->term;
+    if (t != NULL) {
+        free_term(t);
+    }
+    OpTerm* opTerm = e->rest;
+    if (opTerm != NULL) {
+        free_opterm(opTerm);
+    }
+    free(e);
+}
+
+static void
+free_term(Term* t) {
+    TermType type = t->type;
+    switch(type) {
+        case VAR_TERM: {
+            free(t->value.var_val);
+            break;
+        }
+        case GROUPED_TERM: {
+            free_expression(t->value.expr_val);
+            break;
+        }
+        case SUBROUTINE_TERM: {
+            printf("calling free routine\n");
+            free_subroutine_call(t->value.call_val);
+            break;
+        }
+    }
+    free(t);
+}
+
+static void
+free_opterm(OpTerm* opTerm) {
+    OpTerm* cur = opTerm;
+    while (cur) {
+        if (cur->term) {
+            free_term(cur->term);
+        }
+        OpTerm* next = cur->next;
+        free(cur);
+        cur = next;
+    }
+}
+
+static void
+free_subroutine_call(SubroutineCall* call) {
+    free_expression_list(call->exprList);
+    free(call->subroutineName);
+    if (call->caller != NULL) {
+        free(call->caller);
+    }
+    free(call);
+}
+
+static void
+free_expression_list(ExpressionList* list) {
+    ExpressionList* cur = list;
+    while (cur) {
+        if (cur->expr) {
+            free_expression(cur->expr);
+        }
+        ExpressionList* next = cur->next;
+        free(cur);
+        cur = next;
+    }
 }

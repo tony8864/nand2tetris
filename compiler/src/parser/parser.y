@@ -238,6 +238,7 @@ subroutineHeader
                             routineSymtab_insert(ROUTINE_SYMTAB, className, ARG_TYPE, NULL);
                         }
                         $$ = $2;
+                        free($3);
                     }
                 ;
 
@@ -328,7 +329,7 @@ statement
         ;
 
 ifstatement
-        : ifHead OPEN_CURLY statements 
+        : ifExpression CLOSE_PAR OPEN_CURLY statements 
             {
                 emitter_generate_after_if_statements();
             }
@@ -338,10 +339,11 @@ ifstatement
             }
         ;
 
-ifHead
-    : IF OPEN_PAR expression CLOSE_PAR
+ifExpression
+    : IF OPEN_PAR expression
         {
             emitter_generate_if_expression($3);
+            emitter_free_if_expression($3);
         }
     ;
 
@@ -354,17 +356,30 @@ letstatement
             : LET varName optionalArrayExpression EQUAL expression SEMICOLON
                 {
                     emitter_generate_let_statement($2, $5);
+                    emitter_free_let_statement($2, $5);
                 }
             ;
 
 whilestatement
-            : WHILE OPEN_PAR expression CLOSE_PAR OPEN_CURLY statements CLOSE_CURLY
+            : whileExpression CLOSE_PAR OPEN_CURLY statements CLOSE_CURLY
+                {
+                    emitter_generate_after_while_statements();
+                }
+            ;
+
+whileExpression
+            : WHILE OPEN_PAR expression
+                {
+                    emitter_generate_while_expression($3);
+                    emitter_free_while_expression($3);
+                }
             ;
 
 dostatement
         : DO subroutineCall SEMICOLON
             {
                 emitter_generate_do_statement($2);
+                emitter_free_do_statement($2);
             }
         ;
 
@@ -393,7 +408,8 @@ optionalArrayExpression
 
 expression
         : term optionalTerm
-            {
+            {   
+                BISON_DEBUG_PRINT("create expression\n");
                 $$ = emitter_create_expression($1, $2);
             }
         ;
@@ -411,7 +427,8 @@ optionalTerm
 
 operationTerm
             : operation term
-                {
+                {   
+                    BISON_DEBUG_PRINT("create op term\n");
                     $$ = emitter_create_op_term($1, $2);   
                 }
             ;
@@ -431,7 +448,9 @@ term
         }
     | varName
         {
+            BISON_DEBUG_PRINT("creating varname term: %s\n", $1);
             $$ = emitter_create_var_term($1);
+            free($1);
         }
     | varName OPEN_BRACKET expression CLOSE_BRACKET
         {
@@ -474,6 +493,8 @@ methodcall
         : IDENTIFIER DOT subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
             {
                 $$ = emitter_create_method_call($1, $3, $5);
+                free($1);
+                free($3);
             }
         ;
 
@@ -491,6 +512,7 @@ optionalExpressionList
 expressionList
         : expression
             {
+                BISON_DEBUG_PRINT("Creating expression list\n");
                 $$ = emitter_create_expressionList($1);
             }
         | expressionList COMMA expression
