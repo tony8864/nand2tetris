@@ -2,6 +2,7 @@
 #include "safe_util.h"
 
 #include <stdlib.h>
+#include <string.h>
 
 CompilerContext gbl_context = {0};
 
@@ -69,4 +70,15 @@ common_var_type_to_string(VarType* type) {
         case CLASS_TYPE:    return "class";
         default:            return "unknown";
     }
+}
+
+unsigned
+common_is_class_name(char* name) {
+    for (int i = 0; i < JACK_CLASSES_COUNT; i++) {
+
+        if (strcmp(name, JACK_CLASSES[i]) == 0) {
+            return 1;
+        }
+    }
+    return 0;
 }

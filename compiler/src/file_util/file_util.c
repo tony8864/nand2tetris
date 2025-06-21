@@ -1,5 +1,6 @@
 #include "file_util.h"
 #include "safe_util.h"
+#include "str_util.h"
 #include "common.h"
 
 #include <sys/stat.h>
@@ -59,6 +60,28 @@ FILEUTIL_list_files(const char* path, int* count) {
     free(normalized_folder);
     *count = n;
     return file_list;
+}
+
+void
+FILEUTIL_collect_jack_class_names(char** files, int count) {
+    char* src_name = NULL;
+
+    JACK_CLASSES = safe_malloc(sizeof(char*) * count);
+    JACK_CLASSES_COUNT = count;
+
+    for (int i = 0; i < count; i++) {
+        src_name = strutil_path_to_source_name(files[i]);
+        JACK_CLASSES[i] = src_name;
+    }
+}
+
+void
+FILEUTIL_print_jack_class_names() {
+    char* class;
+    for (int i = 0; i < JACK_CLASSES_COUNT; i++) {
+        class = JACK_CLASSES[i];
+        printf("class: %s\n", class);
+    }
 }
 
 void

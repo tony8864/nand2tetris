@@ -27,6 +27,9 @@ typedef struct RoutineSymbolTable RoutineSymbolTable;
 typedef struct RoutineSymbolTableEntry RoutineSymbolTableEntry;
 
 typedef struct {
+    char** jack_class_names;
+    unsigned jack_classes_count;
+
     char* currentClassName;
     char* currentFilePath;      // test/Main.jack
     char* currentFileName;      // Main.jack
@@ -43,8 +46,11 @@ typedef struct {
 
 extern CompilerContext gbl_context;
 
-#define ROUTINE_SYMTAB (gbl_context.routineSymbolTable)
-#define CLASS_SYMTAB   (gbl_context.classSymbolTable)
+#define JACK_CLASSES        (gbl_context.jack_class_names)
+#define JACK_CLASSES_COUNT  (gbl_context.jack_classes_count)
+
+#define ROUTINE_SYMTAB  (gbl_context.routineSymbolTable)
+#define CLASS_SYMTAB    (gbl_context.classSymbolTable)
 
 #define OUT_FOLDER      (gbl_context.outputFolderName)
 #define FULL_SRC_PATH   (gbl_context.currentFilePath)
@@ -141,5 +147,8 @@ common_free_vartype(VarType* t);
 
 char*
 common_var_type_to_string(VarType* type);
+
+unsigned
+common_is_class_name(char* name);
 
 #endif

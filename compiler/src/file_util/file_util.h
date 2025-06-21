@@ -11,6 +11,12 @@ void
 FILEUTIL_free_file_list(char** files, int count);
 
 void
+FILEUTIL_collect_jack_class_names(char** files, int count);
+
+void
+FILEUTIL_print_jack_class_names();
+
+void
 FILEUTIL_create_vm_file();
 
 #endif

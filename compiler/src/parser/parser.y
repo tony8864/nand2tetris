@@ -601,6 +601,9 @@ int main(int argc, char** argv) {
     int     count;
     char**  files = FILEUTIL_list_files(input_folder, &count);
 
+    FILEUTIL_collect_jack_class_names(files, count);
+    FILEUTIL_print_jack_class_names();
+
     for (int i = 0; i < count; i++) {
         parse_file(files[i]);
     }
@@ -615,7 +618,7 @@ int main(int argc, char** argv) {
 static void
 set_debugging() {
     common_set_lex_debug_mode(0);
-    common_set_bison_debug_mode(1);
+    common_set_bison_debug_mode(0);
 }
 
 static void

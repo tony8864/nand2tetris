@@ -20,6 +20,9 @@ static void
 check_routine_var_redeclared(char* name);
 
 static void
+check_if_name_is_valid_class(char* name);
+
+static void
 free_param(Param* p);
 
 void
@@ -130,6 +133,7 @@ parserutil_insert_parameters(ParamList* list) {
 
 VarType*
 parserutil_create_var_type(VarTypeKind kind, char* name) {
+    check_if_name_is_valid_class(name);
     VarType* type = safe_malloc(sizeof(VarType));
     type->kind = kind;
     type->className = name;
@@ -177,4 +181,12 @@ free_param(Param* p) {
     common_free_vartype(p->type);
     free(p->name);
     free(p);
+}
+
+static void
+check_if_name_is_valid_class(char* name) {
+    if (name && !common_is_class_name(name)) {
+        printf("Error at line %d: \"%s\" is not a valid class name.\n", yylineno, name);
+        exit(1);
+    }
 }
