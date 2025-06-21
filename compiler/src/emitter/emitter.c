@@ -123,6 +123,9 @@ free_subroutine_call(SubroutineCall* call);
 static void
 free_expression_list(ExpressionList* list);
 
+static void
+free_unary_term(UnaryTerm* t);
+
 void
 emitter_free_let_statement(char* varName, Expression* e) {
     free_expression(e);
@@ -573,6 +576,10 @@ free_term(Term* t) {
             free_subroutine_call(t->value.call_val);
             break;
         }
+        case UNARY_TERM: {
+            free_unary_term(t->value.unary_val);
+            break;
+        }
     }
     free(t);
 }
@@ -611,4 +618,10 @@ free_expression_list(ExpressionList* list) {
         free(cur);
         cur = next;
     }
+}
+
+static void
+free_unary_term(UnaryTerm* t) {
+    free(t->term);
+    free(t);
 }
