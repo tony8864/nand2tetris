@@ -3,26 +3,29 @@
 
 #include <stdio.h>
 
+/* ======================================
+   Debugging Utilities
+   ====================================== */
+
 extern unsigned lex_debug_mode;
 extern unsigned bison_debug_mode;
 
 #define LEX_DEBUG_PRINT(fmt, ...) \
-            do { if (lex_debug_mode) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
+    do { if (lex_debug_mode) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
 #define BISON_DEBUG_PRINT(fmt, ...) \
-            do { if (bison_debug_mode) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
+    do { if (bison_debug_mode) fprintf(stderr, fmt, ##__VA_ARGS__); } while (0)
 
-void
-common_set_lex_debug_mode(unsigned enabled);
+void common_set_lex_debug_mode(unsigned enabled);
+void common_set_bison_debug_mode(unsigned enabled);
 
-void
-common_set_bison_debug_mode(unsigned enabled);
 
-typedef struct ClassVariable ClassVariable;
+/* ======================================
+   Global Compiler Context
+   ====================================== */
+
 typedef struct ClassSymbolTable ClassSymbolTable;
 typedef struct ClassSymbolTableEntry ClassSymbolTableEntry;
-
-typedef struct RoutineVariable RoutineVariable;
 typedef struct RoutineSymbolTable RoutineSymbolTable;
 typedef struct RoutineSymbolTableEntry RoutineSymbolTableEntry;
 
@@ -33,10 +36,10 @@ typedef struct {
     unsigned jack_classes_count;
 
     char* currentClassName;
-    char* currentFilePath;      // test/Main.jack
+    char* currentFilePath;      // e.g. test/Main.jack
     char* currentFileName;      // Main.jack
     char* currentSourceName;    // Main
-    char* sourceFolder;         // test
+    char* sourceFolder;         // test/
 
     char* outputFolderName;
     char* currentVmFilename;    // Main.vm
@@ -50,70 +53,30 @@ typedef struct {
 
 extern CompilerContext gbl_context;
 
+/* Useful Macros for Global Access */
 #define JACK_CLASSES        (gbl_context.jack_class_names)
 #define JACK_CLASSES_COUNT  (gbl_context.jack_classes_count)
 
 #define CURRENT_SUBROUTINE  (gbl_context.currentRoutine)
+#define ROUTINE_SYMTAB      (gbl_context.routineSymbolTable)
+#define CLASS_SYMTAB        (gbl_context.classSymbolTable)
 
-#define ROUTINE_SYMTAB  (gbl_context.routineSymbolTable)
-#define CLASS_SYMTAB    (gbl_context.classSymbolTable)
+#define OUT_FOLDER          (gbl_context.outputFolderName)
+#define FULL_SRC_PATH       (gbl_context.currentFilePath)
+#define SRC_FOLDER          (gbl_context.sourceFolder)
+#define SRC_NAME            (gbl_context.currentSourceName)
+#define VM_NAME             (gbl_context.currentVmFilename)
+#define VM_FILE             (gbl_context.vm_file)
 
-#define OUT_FOLDER      (gbl_context.outputFolderName)
-#define FULL_SRC_PATH   (gbl_context.currentFilePath)
-#define SRC_FOLDER      (gbl_context.sourceFolder)
-#define SRC_NAME        (gbl_context.currentSourceName)
-#define VM_NAME         (gbl_context.currentVmFilename)
-#define VM_FILE         (gbl_context.vm_file)
 
-typedef enum {
-    STATIC_SCOPE,
-    FIELD_SCOPE
-} ClassScopeType;
-
-typedef enum {
-    ARG_TYPE,
-    VAR_TYPE
-} RoutineScopeType;
+/* ======================================
+   Enums
+   ====================================== */
 
 typedef enum {
-    INT_TYPE,
-    CHAR_TYPE,
-    BOOLEAN_TYPE,
-    CLASS_TYPE
-} VarTypeKind;
-
-typedef struct {
-    VarTypeKind kind;
-    char* className;
-} VarType;
-
-typedef enum {
-    CONSTRUCTOR_TYPE,
-    FUNCTION_TYPE,
-    METHOD_TYPE
-} SubroutineType;
-
-typedef struct VarDecList {
-    unsigned count;
-    char** names;
-} VarDecList;
-
-typedef struct Param {
-    VarType* type;
-    char* name;
-    struct Param* next;
-} Param;
-
-typedef struct ParamList {
-    unsigned count;
-    Param* head;
-} ParamList;
-
-typedef struct Term Term;
-typedef struct OpTerm OpTerm;
-typedef struct Expression Expression;
-typedef struct ExpressionList ExpressionList;
-typedef struct SubroutineCall SubroutineCall;
+    UNARY_MINUS,
+    UNARY_NEG
+} UnaryOperationType;
 
 typedef enum {
     PLUS_OP,
@@ -135,26 +98,102 @@ typedef enum {
 } TermType;
 
 typedef enum {
-    UNARY_MINUS,
-    UNARY_NEG
-} UnaryOperationType;
+    STATIC_SCOPE,
+    FIELD_SCOPE
+} ClassScopeType;
 
-VarType*
-common_create_vartype(VarTypeKind kind, char* name);
+typedef enum {
+    ARG_TYPE,
+    VAR_TYPE
+} RoutineScopeType;
 
-VarType*
-common_copy_vartype(VarType* original);
+typedef enum {
+    INT_TYPE,
+    CHAR_TYPE,
+    BOOLEAN_TYPE,
+    CLASS_TYPE
+} VarTypeKind;
 
-char*
-common_get_classname_from_type(VarType* type);
+typedef enum {
+    CONSTRUCTOR_TYPE,
+    FUNCTION_TYPE,
+    METHOD_TYPE
+} SubroutineType;
 
-void
-common_free_vartype(VarType* t);
 
-char*
-common_var_type_to_string(VarType* type);
+/* ======================================
+   Symbol Structures
+   ====================================== */
 
-unsigned
-common_is_class_name(char* name);
+typedef struct {
+    VarTypeKind kind;
+    char* className;
+} VarType;
 
-#endif
+typedef struct VarDecList {
+    unsigned count;
+    char** names;
+} VarDecList;
+
+typedef struct Param {
+    VarType* type;
+    char* name;
+    struct Param* next;
+} Param;
+
+typedef struct ParamList {
+    unsigned count;
+    Param* head;
+} ParamList;
+
+typedef struct UnaryTerm {
+    struct Term* term;
+    UnaryOperationType op;
+} UnaryTerm;
+
+typedef struct Term {
+    TermType type;
+    union {
+        int int_val;
+        char* var_val;
+        struct Expression* expr_val;
+        struct UnaryTerm* unary_val;
+        struct SubroutineCall* call_val;
+    } value;
+} Term;
+
+typedef struct OpTerm {
+    Term* term;
+    OperationType op;
+    struct OpTerm* next;
+} OpTerm;
+
+typedef struct Expression {
+    Term* term;
+    OpTerm* rest;
+} Expression;
+
+typedef struct ExpressionList {
+    Expression* expr;
+    struct ExpressionList* next;
+} ExpressionList;
+
+typedef struct SubroutineCall {
+    char* subroutineName;
+    ExpressionList* exprList;
+    char* caller; // NULL if the call is direct
+} SubroutineCall;
+
+
+/* ======================================
+   Common Utility Functions
+   ====================================== */
+
+VarType* common_create_vartype(VarTypeKind kind, char* name);
+VarType* common_copy_vartype(VarType* original);
+char*    common_get_classname_from_type(VarType* type);
+void     common_free_vartype(VarType* t);
+char*    common_var_type_to_string(VarType* type);
+unsigned common_is_class_name(char* name);
+
+#endif // COMMON_H

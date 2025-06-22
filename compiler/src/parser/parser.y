@@ -246,13 +246,18 @@ subroutineHeader
                             }
                            
                             char* returnTypeName = common_get_classname_from_type($2);
+                            if (returnTypeName == NULL) {
+                                printf("[Error]: %s:%d: Return type of constructor must match class name.\n", FULL_SRC_PATH, yylineno);
+                                exit(1);
+                            }
+                            
                             if (strcmp(returnTypeName, SRC_NAME) != 0) {
                                 printf("[Error]: %s:%d: Return type of constructor must match class name.\n", FULL_SRC_PATH, yylineno);
                                 exit(1);
                             }
                         }
                         
-                        CURRENT_SUBROUTINE = parserutil_create_subroutine($1, $2, $3);
+                        //CURRENT_SUBROUTINE = parserutil_create_subroutine($1, $2, $3);
 
                         $$ = $2;
                         free($3);
@@ -364,7 +369,7 @@ ifExpression
     : IF OPEN_PAR expression
         {
             emitter_generate_if_expression($3);
-            emitter_free_if_expression($3);
+            parserutil_free_if_expression($3);
         }
     ;
 
@@ -377,7 +382,7 @@ letstatement
             : LET varName optionalArrayExpression EQUAL expression SEMICOLON
                 {
                     emitter_generate_let_statement($2, $5);
-                    emitter_free_let_statement($2, $5);
+                    parserutil_free_let_statement($2, $5);
                 }
             ;
 
@@ -392,7 +397,7 @@ whileExpression
             : WHILE OPEN_PAR expression
                 {
                     emitter_generate_while_expression($3);
-                    emitter_free_while_expression($3);
+                    parserutil_free_while_expression($3);
                 }
             ;
 
@@ -400,7 +405,7 @@ dostatement
         : DO subroutineCall SEMICOLON
             {
                 emitter_generate_do_statement($2);
-                emitter_free_do_statement($2);
+                parserutil_free_do_statement($2);
             }
         ;
 
@@ -431,14 +436,14 @@ expression
         : term optionalTerm
             {   
                 BISON_DEBUG_PRINT("create expression\n");
-                $$ = emitter_create_expression($1, $2);
+                $$ = parserutil_create_expression($1, $2);
             }
         ;
 
 optionalTerm
             : optionalTerm operationTerm
                 {
-                    $$ = emitter_append_op_term($1, $2);
+                    $$ = parserutil_append_op_term($1, $2);
                 }
             | %empty
                 {
@@ -450,14 +455,14 @@ operationTerm
             : operation term
                 {   
                     BISON_DEBUG_PRINT("create op term\n");
-                    $$ = emitter_create_op_term($1, $2);   
+                    $$ = parserutil_create_op_term($1, $2);   
                 }
             ;
 
 term
     : INTEGER
         {
-            $$ = emitter_create_int_term($1);
+            $$ = parserutil_create_int_term($1);
         }
     | STRING
         {
@@ -470,7 +475,7 @@ term
     | varName
         {
             BISON_DEBUG_PRINT("creating varname term: %s\n", $1);
-            $$ = emitter_create_var_term($1);
+            $$ = parserutil_create_var_term($1);
             free($1);
         }
     | varName OPEN_BRACKET expression CLOSE_BRACKET
@@ -479,15 +484,15 @@ term
         }
     | OPEN_PAR expression CLOSE_PAR
         {   
-            $$ = emitter_create_grouped_term($2);
+            $$ = parserutil_create_grouped_term($2);
         }
     | unaryOperation term
         {
-            $$ = emitter_create_unary_term($1, $2);
+            $$ = parserutil_create_unary_term($1, $2);
         }
     | subroutineCall
         {
-            $$ = emitter_create_subroutine_term($1);
+            $$ = parserutil_create_subroutine_term($1);
         }
     ;
 
@@ -505,7 +510,7 @@ subroutineCall
 directcall
         : subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
             {   
-                $$ = emitter_create_direct_call($1, $3);
+                $$ = parserutil_create_direct_call($1, $3);
             }
         ;
 
@@ -513,7 +518,7 @@ directcall
 methodcall
         : IDENTIFIER DOT subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
             {
-                $$ = emitter_create_method_call($1, $3, $5);
+                $$ = parserutil_create_method_call($1, $3, $5);
                 free($1);
                 free($3);
             }
@@ -534,11 +539,11 @@ expressionList
         : expression
             {
                 BISON_DEBUG_PRINT("Creating expression list\n");
-                $$ = emitter_create_expressionList($1);
+                $$ = parserutil_create_expressionList($1);
             }
         | expressionList COMMA expression
             {
-                $$ = emiiter_append_expression($1, $3);
+                $$ = parserutil_append_expression($1, $3);
             }
         ;
 
