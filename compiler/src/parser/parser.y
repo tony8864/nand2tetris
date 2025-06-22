@@ -226,6 +226,7 @@ subroutineDeclaration
                             }
                             routineSymtab_print(ROUTINE_SYMTAB);
                             routineSymtab_free(ROUTINE_SYMTAB);
+                            parser_util_free_subroutine(CURRENT_SUBROUTINE);
                             common_free_vartype($1);
                         }
                     ;
@@ -250,14 +251,14 @@ subroutineHeader
                                 printf("[Error]: %s:%d: Return type of constructor must match class name.\n", FULL_SRC_PATH, yylineno);
                                 exit(1);
                             }
-                            
+
                             if (strcmp(returnTypeName, SRC_NAME) != 0) {
                                 printf("[Error]: %s:%d: Return type of constructor must match class name.\n", FULL_SRC_PATH, yylineno);
                                 exit(1);
                             }
                         }
                         
-                        //CURRENT_SUBROUTINE = parserutil_create_subroutine($1, $2, $3);
+                        CURRENT_SUBROUTINE = parserutil_create_subroutine($1, $2, $3);
 
                         $$ = $2;
                         free($3);
@@ -306,7 +307,7 @@ param
 subroutineBody
             : OPEN_CURLY optionalLocalVarDecl
                 {
-
+                    emitter_generate_subroutine();
                 }
               statements CLOSE_CURLY
             ;
@@ -635,6 +636,8 @@ int main(int argc, char** argv) {
     }
 
     FILEUTIL_free_file_list(files, count);
+    FILEUTIL_free_jack_class_names(count);
+
     free(SRC_FOLDER);
     free(OUT_FOLDER);
 

@@ -76,6 +76,14 @@ FILEUTIL_collect_jack_class_names(char** files, int count) {
 }
 
 void
+FILEUTIL_free_jack_class_names(int count) {
+    for (int i = 0; i < count; i++) {
+        free(JACK_CLASSES[i]);
+    }
+    free(JACK_CLASSES);
+}
+
+void
 FILEUTIL_print_jack_class_names() {
     char* class;
     for (int i = 0; i < JACK_CLASSES_COUNT; i++) {

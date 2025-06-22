@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <assert.h>
+#include <string.h>
 
 extern int yylineno;
 
@@ -70,6 +71,11 @@ generate_if_label();
 static char*
 generate_while_label();
 
+static void
+generate_constructor();
+
+static char*
+get_constructor_full_name();
 
 void
 emitter_generate_if_expression(Expression* e) {
@@ -148,6 +154,48 @@ emitter_generate_do_statement(SubroutineCall* call) {
     emit_expression_list(call->exprList);
     emit_subroutine_call(call);
     emit("pop temp 0\n");
+}
+
+void
+emitter_generate_subroutine() {
+    switch(CURRENT_SUBROUTINE->type) {
+        case CONSTRUCTOR_TYPE: {
+            generate_constructor();
+            break;
+        }
+        case FUNCTION_TYPE: {
+
+        }
+        case METHOD_TYPE: {
+
+        }
+    }
+}
+
+static void
+generate_constructor() {
+    unsigned locals = routineSymtab_get_locals_count(ROUTINE_SYMTAB);
+    unsigned fields = classSymtab_get_fields_count(CLASS_SYMTAB);
+    char* constructor_name = get_constructor_full_name();
+    
+    emit("function %s %d\n", constructor_name, locals);
+    emit("push constant %d\n", fields);
+    emit("call Memory.alloc 1\n");
+    emit("pop pointer 0\n");
+
+    free(constructor_name);
+}
+
+static char*
+get_constructor_full_name() {
+    char* subroutine_name = CURRENT_SUBROUTINE->name;
+    char* src_name = SRC_NAME;
+
+    size_t len = strlen(subroutine_name) + strlen(src_name) + 1 + 1; // +1 for '.' +1 for'\0'
+    char* full_name = safe_malloc(sizeof(char) * len);
+
+    snprintf(full_name, len, "%s.%s", src_name, subroutine_name);
+    return full_name;
 }
 
 static void

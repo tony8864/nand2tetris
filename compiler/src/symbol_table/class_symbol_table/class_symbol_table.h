@@ -27,4 +27,7 @@ classSymtab_get_entry_index(ClassSymbolTableEntry* entry);
 VarType*
 classSymtab_get_vartype(ClassSymbolTableEntry* entry);
 
+unsigned
+classSymtab_get_fields_count(ClassSymbolTable* table);
+
 #endif

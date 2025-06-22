@@ -17,6 +17,9 @@ void
 FILEUTIL_print_jack_class_names();
 
 void
+FILEUTIL_free_jack_class_names(int count);
+
+void
 FILEUTIL_create_vm_file();
 
 #endif

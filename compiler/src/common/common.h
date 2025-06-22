@@ -184,6 +184,11 @@ typedef struct SubroutineCall {
     char* caller; // NULL if the call is direct
 } SubroutineCall;
 
+typedef struct Subroutine {
+    SubroutineType type;
+    VarType* returnType;
+    char* name;
+} Subroutine;
 
 /* ======================================
    Common Utility Functions

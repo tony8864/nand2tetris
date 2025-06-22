@@ -31,4 +31,7 @@ emitter_generate_return_statement(Expression* e);
 void
 emitter_generate_do_statement(SubroutineCall* call);
 
+void
+emitter_generate_subroutine();
+
 #endif

@@ -13,12 +13,6 @@ extern int yylineno;
 
 #define MAX_CLASS_VAR_DEC_LIST 20
 
-typedef struct Subroutine {
-    SubroutineType type;
-    VarType* returnType;
-    char* name;
-} Subroutine;
-
 static void
 check_class_var_redeclared(char* name);
 
@@ -354,7 +348,8 @@ parserutil_create_subroutine(SubroutineType type, VarType* returnType, char* nam
 
 void
 parser_util_free_subroutine(Subroutine* r) {
-    
+    free(r->name);
+    free(r);
 }
 
 

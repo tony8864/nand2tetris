@@ -141,6 +141,24 @@ classSymtab_get_vartype(ClassSymbolTableEntry* entry) {
     return entry->variable->type;
 }
 
+unsigned
+classSymtab_get_fields_count(ClassSymbolTable* table) {
+    ClassSymbolTableEntry* curr;
+    unsigned fields = 0;
+    for (int i = 0; i < CLASS_HASH_TABLE_SIZE; i++) {
+        if (table->buckets[i] != NULL) {
+            curr = table->buckets[i];
+            while (curr) {
+                if (curr->variable->kind == FIELD_SCOPE) {
+                    fields++;
+                }
+                curr = curr->next;
+            }
+        }
+    }
+    return fields;
+}
+
 static ClassVariable*
 create_variable(char* name, ClassScopeType kind, VarType* type, unsigned index) {
     ClassVariable* variable = safe_malloc(sizeof(ClassVariable));

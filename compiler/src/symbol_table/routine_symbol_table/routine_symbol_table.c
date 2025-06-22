@@ -129,7 +129,7 @@ routineSymtab_get_str_kind(RoutineSymbolTableEntry* entry) {
     switch (entry->variable->kind) {
         case ARG_TYPE: return "argument";
         case VAR_TYPE: return "local";
-        default:           return "unknown";
+        default:       return "unknown";
     }
 }
 
@@ -141,6 +141,24 @@ routineSymtab_get_entry_index(RoutineSymbolTableEntry* entry) {
 VarType*
 routineSymtab_get_vartype(RoutineSymbolTableEntry* entry) {
     return entry->variable->type;
+}
+
+unsigned
+routineSymtab_get_locals_count(RoutineSymbolTable* table) {
+    RoutineSymbolTableEntry* curr;
+    unsigned locals = 0;
+    for (int i = 0; i < ROUTINE_BUCKETS; i++) {
+        if (table->buckets[i] != NULL) {
+            curr = table->buckets[i];
+            while (curr) {
+                if (curr->variable->kind == VAR_TYPE) {
+                    locals++;
+                }
+                curr = curr->next;
+            }
+        }
+    }
+    return locals;
 }
 
 static RoutineVariable*
