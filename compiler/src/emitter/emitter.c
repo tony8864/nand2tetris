@@ -2,6 +2,7 @@
 #include "class_symbol_table.h"
 #include "safe_util.h"
 #include "emitter.h"
+#include "common.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -76,6 +77,9 @@ generate_constructor();
 
 static char*
 get_constructor_full_name();
+
+static void
+emit_keywordconst_term(KeywordConstType type);
 
 void
 emitter_generate_if_expression(Expression* e) {
@@ -227,6 +231,32 @@ emit_term(Term* term) {
         }
         case SUBROUTINE_TERM: {
             emit_subroutine_term(term->value.call_val);
+            break;
+        }
+        case KEYWORDCONST_TERM: {
+            emit_keywordconst_term(term->value.keywordconst_val);
+        }
+    }
+}
+
+static void
+emit_keywordconst_term(KeywordConstType type) {
+    switch(type) {
+        case KEYWORD_TRUE: {
+            emit("push constant 0\n");
+            break;
+        }
+        case KEYWORD_FALSE: {
+            emit("push constant 0\n");
+            emit("not\n");
+            break;
+        }
+        case KEYWORD_THIS: {
+            emit("push pointer 0\n");
+            break;
+        }
+        case KEYWORD_NULL: {
+            emit("push constant 0\n");
             break;
         }
     }

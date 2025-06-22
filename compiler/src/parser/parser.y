@@ -62,6 +62,7 @@ extern int      yylineno;
     ExpressionList*     expressionList;
     SubroutineCall*     subroutineCall;
     UnaryOperationType  unaryOp;
+    KeywordConstType    keywordConstType;
 }
 
 %start program
@@ -93,6 +94,7 @@ extern int      yylineno;
 %type<expressionList>   expressionList optionalExpressionList
 %type<unaryOp>          unaryOperation
 %type<subroutineCall>   subroutineCall directcall methodcall
+%type<keywordConstType> keywordConst
 
 %%
 
@@ -107,7 +109,6 @@ className
         : IDENTIFIER
             {
                 parserutil_validate_class_name($1);
-                BISON_DEBUG_PRINT("\tclass definition: %s\n\n", $1);
                 $$ = $1;
             }
         ;
@@ -436,7 +437,6 @@ optionalArrayExpression
 expression
         : term optionalTerm
             {   
-                BISON_DEBUG_PRINT("create expression\n");
                 $$ = parserutil_create_expression($1, $2);
             }
         ;
@@ -455,7 +455,6 @@ optionalTerm
 operationTerm
             : operation term
                 {   
-                    BISON_DEBUG_PRINT("create op term\n");
                     $$ = parserutil_create_op_term($1, $2);   
                 }
             ;
@@ -471,11 +470,10 @@ term
         }
     | keywordConst
         {
-            $$ = NULL;
+            $$ = parserutil_create_keyword_const_term($1);
         }
     | varName
         {
-            BISON_DEBUG_PRINT("creating varname term: %s\n", $1);
             $$ = parserutil_create_var_term($1);
             free($1);
         }
@@ -539,7 +537,6 @@ optionalExpressionList
 expressionList
         : expression
             {
-                BISON_DEBUG_PRINT("Creating expression list\n");
                 $$ = parserutil_create_expressionList($1);
             }
         | expressionList COMMA expression
@@ -600,9 +597,21 @@ unaryOperation
 
 keywordConst
             : TRUE
+                {
+                    $$ = KEYWORD_TRUE;
+                }
             | FALSE
+                {
+                    $$ = KEYWORD_FALSE;
+                }
             | THIS
+                {
+                    $$ = KEYWORD_THIS;
+                }
             | NULL_T
+                {
+                    $$ = KEYWORD_NULL;
+                }
             ;
 
 %%

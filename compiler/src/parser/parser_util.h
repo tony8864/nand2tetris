@@ -64,6 +64,9 @@ parserutil_create_subroutine_term(SubroutineCall* call);
 Term*
 parserutil_create_unary_term(UnaryOperationType op, Term* term);
 
+Term*
+parserutil_create_keyword_const_term(KeywordConstType type);
+
 // -----------------------------------------------------------------------------
 // Operators and Expressions
 // -----------------------------------------------------------------------------

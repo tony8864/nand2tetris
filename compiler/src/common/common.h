@@ -74,6 +74,13 @@ extern CompilerContext gbl_context;
    ====================================== */
 
 typedef enum {
+    KEYWORD_TRUE,
+    KEYWORD_FALSE,
+    KEYWORD_THIS,
+    KEYWORD_NULL
+} KeywordConstType;
+
+typedef enum {
     UNARY_MINUS,
     UNARY_NEG
 } UnaryOperationType;
@@ -94,7 +101,8 @@ typedef enum {
     VAR_TERM,
     GROUPED_TERM,
     UNARY_TERM,
-    SUBROUTINE_TERM
+    SUBROUTINE_TERM,
+    KEYWORDCONST_TERM
 } TermType;
 
 typedef enum {
@@ -154,11 +162,12 @@ typedef struct UnaryTerm {
 typedef struct Term {
     TermType type;
     union {
-        int int_val;
-        char* var_val;
-        struct Expression* expr_val;
-        struct UnaryTerm* unary_val;
-        struct SubroutineCall* call_val;
+        int                     int_val;
+        char*                   var_val;
+        KeywordConstType        keywordconst_val;
+        struct Expression*      expr_val;
+        struct UnaryTerm*       unary_val;
+        struct SubroutineCall*  call_val;
     } value;
 } Term;
 

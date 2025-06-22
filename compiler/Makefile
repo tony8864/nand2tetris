@@ -17,7 +17,7 @@ OBJECTS = 	build/parser.o		\
 EMITTER_PATH = src/emitter
 EMITTER_H = ${EMITTER_PATH}/emitter.h
 EMITTER_C = ${EMITTER_PATH}/emitter.c
-EMITTER_DEP = ${EMITTER_C} ${SAFEUTIL_H} ${CLASS_SYMTAB_H} ${ROUTINE_SYMTAB_H}
+EMITTER_DEP = ${EMITTER_C} ${SAFEUTIL_H} ${CLASS_SYMTAB_H} ${ROUTINE_SYMTAB_H} ${COMMON_H}
 
 CLASS_SYMTAB_PATH = src/symbol_table/class_symbol_table
 CLASS_SYMTAB_H = ${CLASS_SYMTAB_PATH}/class_symbol_table.h

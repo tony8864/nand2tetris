@@ -225,6 +225,14 @@ parserutil_create_unary_term(UnaryOperationType op, Term* term) {
     return t;
 }
 
+Term*
+parserutil_create_keyword_const_term(KeywordConstType type) {
+    Term* t = safe_malloc(sizeof(Term));
+    t->type = KEYWORDCONST_TERM;
+    t->value.keywordconst_val = type;
+    return t;
+}
+
 // -----------------------------------------------------------------------------
 // Operators and Expressions
 // -----------------------------------------------------------------------------
@@ -351,7 +359,6 @@ parser_util_free_subroutine(Subroutine* r) {
     free(r->name);
     free(r);
 }
-
 
 // -----------------------------------------------------------------------------
 // Validation
