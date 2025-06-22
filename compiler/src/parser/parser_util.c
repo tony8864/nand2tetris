@@ -13,6 +13,12 @@ extern int yylineno;
 
 #define MAX_CLASS_VAR_DEC_LIST 20
 
+typedef struct Subroutine {
+    SubroutineType type;
+    VarType* returnType;
+    char* name;
+} Subroutine;
+
 static void
 check_class_var_redeclared(char* name);
 
@@ -90,8 +96,18 @@ parserutil_create_param(VarType* type, char* name) {
 
 void
 parserutil_append_param(ParamList* list, Param* param) {
-    param->next = list->head;
-    list->head = param;
+    param->next = NULL;
+
+    if (list->head == NULL) {
+        list->head = param;
+    }
+    else {
+        Param* cur = list->head;
+        while (cur->next != NULL) {
+            cur = cur->next;
+        }
+        cur->next = param;
+    }
     list->count++;
 }
 
@@ -138,6 +154,20 @@ parserutil_create_var_type(VarTypeKind kind, char* name) {
     type->kind = kind;
     type->className = name;
     return type;
+}
+
+Subroutine*
+parserutil_create_subroutine(SubroutineType type, VarType* returnType, char* name) {
+    Subroutine* r = safe_malloc(sizeof(Subroutine));
+    r->type = type;
+    r->returnType = returnType;
+    r->name = strdup(name);
+    return r;
+}
+
+void
+parser_util_free_subroutine(Subroutine* r) {
+    
 }
 
 void

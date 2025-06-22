@@ -18,7 +18,7 @@ classSymtab_print(ClassSymbolTable* table);
 void
 classSymtab_free(ClassSymbolTable* table);
 
-void
+char*
 classSymtab_get_str_kind(ClassSymbolTableEntry* entry);
 
 unsigned

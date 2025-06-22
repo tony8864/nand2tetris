@@ -34,6 +34,12 @@ parserutil_print_param_list(ParamList* list);
 VarType*
 parserutil_create_var_type(VarTypeKind kind, char* name);
 
+Subroutine*
+parserutil_create_subroutine(SubroutineType type, VarType* returnType, char* name);
+
+void
+parser_util_free_subroutine(Subroutine* r);
+
 void
 parserutil_insert_class_variables(ClassScopeType kind, VarType* type, VarDecList* list);
 

@@ -91,7 +91,7 @@ static void
 emit_routine_var(RoutineSymbolTableEntry* entry, char* op);
 
 static void
-emit_class_var(ClassSymbolTableEntry* entry);
+emit_class_var(ClassSymbolTableEntry* entry, char* op);
 
 static void
 emit_var_access(char* op, char* kind, unsigned index);
@@ -475,7 +475,7 @@ emit_variable(char* name, char* op) {
 
     ClassSymbolTableEntry* classEntry = classSymtab_lookup(CLASS_SYMTAB, name);
     if (classEntry != NULL) {
-        emit_class_var(classEntry);
+        emit_class_var(classEntry, op);
         return;
     }
 
@@ -491,8 +491,10 @@ emit_routine_var(RoutineSymbolTableEntry* entry, char* op) {
 }
 
 static void
-emit_class_var(ClassSymbolTableEntry* entry) {
-    
+emit_class_var(ClassSymbolTableEntry* entry, char* op) {
+    unsigned index = classSymtab_get_entry_index(entry);
+    char*    kind  = classSymtab_get_str_kind(entry);
+    emit_var_access(op, kind, index);
 }
 
 static void

@@ -122,13 +122,13 @@ classSymtab_free(ClassSymbolTable* table) {
     free(table);
 }
 
-void
+char*
 classSymtab_get_str_kind(ClassSymbolTableEntry* entry) {
-    // switch (entry->variable=>kind) {
-    //     case STATIC_SCOPE: return "static";
-    //     case FIELD_SCOPE:  return "field";
-    //     default:           return "unknown";
-    // }
+    switch (entry->variable->kind) {
+        case STATIC_SCOPE: return "static";
+        case FIELD_SCOPE:  return "this";
+        default:           return "unknown";
+    }
 }
 
 unsigned

@@ -26,6 +26,8 @@ typedef struct RoutineVariable RoutineVariable;
 typedef struct RoutineSymbolTable RoutineSymbolTable;
 typedef struct RoutineSymbolTableEntry RoutineSymbolTableEntry;
 
+typedef struct Subroutine Subroutine;
+
 typedef struct {
     char** jack_class_names;
     unsigned jack_classes_count;
@@ -42,12 +44,16 @@ typedef struct {
 
     ClassSymbolTable*   classSymbolTable;
     RoutineSymbolTable* routineSymbolTable;
+
+    Subroutine* currentRoutine;
 } CompilerContext;
 
 extern CompilerContext gbl_context;
 
 #define JACK_CLASSES        (gbl_context.jack_class_names)
 #define JACK_CLASSES_COUNT  (gbl_context.jack_classes_count)
+
+#define CURRENT_SUBROUTINE  (gbl_context.currentRoutine)
 
 #define ROUTINE_SYMTAB  (gbl_context.routineSymbolTable)
 #define CLASS_SYMTAB    (gbl_context.classSymbolTable)

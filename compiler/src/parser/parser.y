@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <string.h>
 
 #include "routine_symbol_table.h"
 #include "class_symbol_table.h"
@@ -237,6 +238,22 @@ subroutineHeader
                             char* className = gbl_context.currentSourceName;
                             routineSymtab_insert(ROUTINE_SYMTAB, className, ARG_TYPE, NULL);
                         }
+                        else
+                        if ($1 == CONSTRUCTOR_TYPE) {
+                            if ($2 == NULL) {
+                                printf("[Error]: %s:%d: Return type of constructor cannot be void.\n", FULL_SRC_PATH, yylineno);
+                                exit(1);
+                            }
+                           
+                            char* returnTypeName = common_get_classname_from_type($2);
+                            if (strcmp(returnTypeName, SRC_NAME) != 0) {
+                                printf("[Error]: %s:%d: Return type of constructor must match class name.\n", FULL_SRC_PATH, yylineno);
+                                exit(1);
+                            }
+                        }
+                        
+                        CURRENT_SUBROUTINE = parserutil_create_subroutine($1, $2, $3);
+
                         $$ = $2;
                         free($3);
                     }
@@ -282,7 +299,11 @@ param
     ;
 
 subroutineBody
-            : OPEN_CURLY optionalLocalVarDecl statements CLOSE_CURLY
+            : OPEN_CURLY optionalLocalVarDecl
+                {
+
+                }
+              statements CLOSE_CURLY
             ;
 
 optionalLocalVarDecl
