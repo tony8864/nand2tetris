@@ -119,6 +119,9 @@ Subroutine*
 parserutil_create_subroutine(SubroutineType type, VarType* returnType, char* name);
 
 void
+parserutil_insert_subroutine(Subroutine* subroutine);
+
+void
 parser_util_free_subroutine(Subroutine* r);
 
 // -----------------------------------------------------------------------------
@@ -143,5 +146,8 @@ parserutil_free_while_expression(Expression* e);
 
 void
 parserutil_free_do_statement(SubroutineCall* call);
+
+void
+parser_util_free_return_statement(Expression* e);
 
 #endif

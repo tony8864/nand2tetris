@@ -62,6 +62,7 @@ common_free_vartype(VarType* t) {
 
 char*
 common_var_type_to_string(VarType* type) {
+    if (!type) return strdup("void");
     VarTypeKind kind = type->kind;
     switch (kind) {
         case INT_TYPE:      return "int";

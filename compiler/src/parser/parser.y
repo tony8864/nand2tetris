@@ -222,12 +222,10 @@ subroutineDeclaration
                     : subroutineHeader OPEN_PAR parameterList CLOSE_PAR subroutineBody
                         {
                             if ($3 != NULL) {
-                                parserutil_print_param_list($3);
                                 parserutil_free_param_list($3);
                             }
                             routineSymtab_print(ROUTINE_SYMTAB);
                             routineSymtab_free(ROUTINE_SYMTAB);
-                            parser_util_free_subroutine(CURRENT_SUBROUTINE);
                             common_free_vartype($1);
                         }
                     ;
@@ -258,9 +256,9 @@ subroutineHeader
                                 exit(1);
                             }
                         }
-                        
+                
                         CURRENT_SUBROUTINE = parserutil_create_subroutine($1, $2, $3);
-
+                        parserutil_insert_subroutine(CURRENT_SUBROUTINE);
                         $$ = $2;
                         free($3);
                     }
@@ -415,6 +413,7 @@ returnstatement
             : RETURN opetionalReturnExpression SEMICOLON
                 {
                     emitter_generate_return_statement($2);
+                    parser_util_free_return_statement($2);
                 }
             ;
 

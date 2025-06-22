@@ -28,7 +28,7 @@ typedef struct ClassSymbolTable ClassSymbolTable;
 typedef struct ClassSymbolTableEntry ClassSymbolTableEntry;
 typedef struct RoutineSymbolTable RoutineSymbolTable;
 typedef struct RoutineSymbolTableEntry RoutineSymbolTableEntry;
-
+typedef struct SubroutineEntry SubroutineEntry;
 typedef struct Subroutine Subroutine;
 
 typedef struct {

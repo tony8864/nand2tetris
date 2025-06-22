@@ -147,7 +147,7 @@ parserutil_insert_class_variables(ClassScopeType kind, VarType* type, VarDecList
     for (int i = 0; i < list->count; i++) {
         name = list->names[i];
         check_class_var_redeclared(name);
-        classSymtab_insert(CLASS_SYMTAB, name, kind, type);
+        classSymtab_insert_variable(CLASS_SYMTAB, name, kind, type);
     }
 }
 
@@ -349,9 +349,19 @@ Subroutine*
 parserutil_create_subroutine(SubroutineType type, VarType* returnType, char* name) {
     Subroutine* r = safe_malloc(sizeof(Subroutine));
     r->type = type;
-    r->returnType = returnType;
+    r->returnType = common_copy_vartype(returnType);
     r->name = strdup(name);
     return r;
+}
+
+void
+parserutil_insert_subroutine(Subroutine* subroutine) {
+    if (classSymtab_lookup_routine(CLASS_SYMTAB, subroutine->name) != NULL) {
+        printf("[Error]: %s:%d: Subroutine \"%s\" is already defined.\n", FULL_SRC_PATH, yylineno, subroutine->name);
+        exit(1);
+    }
+    classSymtab_insert_routine(CLASS_SYMTAB, subroutine);
+    printf("heren\n");
 }
 
 void
@@ -398,13 +408,20 @@ parserutil_free_do_statement(SubroutineCall* call) {
     free_subroutine_call(call);
 }
 
+void
+parser_util_free_return_statement(Expression* e) {
+    if (e) {
+        free_expression(e);
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Static Definitions
 // -----------------------------------------------------------------------------
 
 static void
 check_class_var_redeclared(char* name) {
-    if (classSymtab_lookup(CLASS_SYMTAB, name) != NULL) {
+    if (classSymtab_lookup_variable(CLASS_SYMTAB, name) != NULL) {
         printf("Error at line %d: Symbol \"%s\" is already declared.\n", yylineno, name);
         exit(1);
     }

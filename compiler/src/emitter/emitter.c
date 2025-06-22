@@ -279,12 +279,17 @@ emit_expression_list(ExpressionList* list) {
 static void
 emit_subroutine_call(SubroutineCall* call) {
     unsigned argsCount = get_expr_list_len(call->exprList);
+    
     if (is_in_symbol_table(call->caller)) {
+        printf("jere\n");
         VarType* type = get_vartype_from_name(call->caller);
+        
         char* className = common_get_classname_from_type(type);
+        
         emit("call %s.%s %u\n", className, call->subroutineName, argsCount);
     }
     else {
+        printf("jere\n");
         emit("call %s.%s %u\n", call->caller, call->subroutineName, argsCount);
     }
 }
@@ -349,7 +354,7 @@ emit_variable(char* name, char* op) {
         return;
     }
 
-    ClassSymbolTableEntry* classEntry = classSymtab_lookup(CLASS_SYMTAB, name);
+    ClassSymbolTableEntry* classEntry = classSymtab_lookup_variable(CLASS_SYMTAB, name);
     if (classEntry != NULL) {
         emit_class_var(classEntry, op);
         return;
@@ -390,13 +395,14 @@ get_expr_list_len(ExpressionList* list) {
 
 static unsigned
 is_in_symbol_table(char* name) {
-    return (classSymtab_lookup(CLASS_SYMTAB, name) != NULL ||
-    routineSymtab_lookup(ROUTINE_SYMTAB, name) != NULL);
+    ClassSymbolTableEntry* classEntry = classSymtab_lookup_variable(CLASS_SYMTAB, name);
+    RoutineSymbolTableEntry* routineEntry = routineSymtab_lookup(ROUTINE_SYMTAB, name);
+    return (classEntry != NULL || routineEntry != NULL);
 }
 
 static VarType*
 get_vartype_from_name(char* name) {
-    ClassSymbolTableEntry* classEntry = classSymtab_lookup(CLASS_SYMTAB, name);
+    ClassSymbolTableEntry* classEntry = classSymtab_lookup_variable(CLASS_SYMTAB, name);
     if (classEntry != NULL) {
         return classSymtab_get_vartype(classEntry);
     }
