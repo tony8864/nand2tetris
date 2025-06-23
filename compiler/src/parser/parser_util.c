@@ -233,6 +233,14 @@ parserutil_create_keyword_const_term(KeywordConstType type) {
     return t;
 }
 
+Term*
+parserutil_create_string_term(char* str) {
+    Term* t = safe_malloc(sizeof(Term));
+    t->type = STRING_TERM;
+    t->value.str_val = strdup(str);
+    return t;
+}
+
 // -----------------------------------------------------------------------------
 // Operators and Expressions
 // -----------------------------------------------------------------------------
@@ -481,6 +489,14 @@ free_term(Term* t) {
         case UNARY_TERM: {
             free_unary_term(t->value.unary_val);
             break;
+        }
+        case STRING_TERM: {
+            free(t->value.str_val);
+            break;
+        }
+        default: {
+            printf("[Error]: Uknown term type.\n");
+            exit(1);
         }
     }
     free(t);

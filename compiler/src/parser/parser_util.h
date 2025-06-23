@@ -67,6 +67,9 @@ parserutil_create_unary_term(UnaryOperationType op, Term* term);
 Term*
 parserutil_create_keyword_const_term(KeywordConstType type);
 
+Term*
+parserutil_create_string_term(char* str);
+
 // -----------------------------------------------------------------------------
 // Operators and Expressions
 // -----------------------------------------------------------------------------

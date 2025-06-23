@@ -466,7 +466,8 @@ term
         }
     | STRING
         {
-            $$ = NULL;
+            $$ = parserutil_create_string_term($1);
+            free($1);
         }
     | keywordConst
         {

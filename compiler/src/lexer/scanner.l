@@ -86,7 +86,6 @@ comment         "//".*
 
 <STRING_COND>\" {
     char* string = strreader_getstring(strreader);
-    printf("string : %s\n", string);
 
     free(strreader);
     strreader = NULL;

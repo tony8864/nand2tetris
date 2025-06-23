@@ -27,6 +27,7 @@ static void emit_unary_term(UnaryTerm* unary);
 static void emit_expression_list(ExpressionList* list);
 static void emit_opTermList(OpTerm* opTerm);
 static void emit_keywordconst_term(KeywordConstType type);
+static void emit_string_term(char* str);
 
 // ──── Emit: Subroutines & Calls ─────
 static void emit_subroutine_call(SubroutineCall* call);
@@ -58,7 +59,7 @@ static char* generate_while_label();
 static void generate_constructor();
 static void generate_function();
 static void generate_method();
-static char* get_constructor_full_name();
+static char* get_subroutine_full_name();
 
 // -----------------------------------------------------------------------------
 // VM Code Generation for Statements
@@ -208,6 +209,9 @@ emit_term(Term* term) {
         case KEYWORDCONST_TERM: {
             emit_keywordconst_term(term->value.keywordconst_val);
         }
+        case STRING_TERM: {
+            emit_string_term(term->value.str_val);
+        }
     }
 }
 
@@ -254,6 +258,19 @@ emit_keywordconst_term(KeywordConstType type) {
             emit("push constant 0\n");
             break;
         }
+    }
+}
+
+static void
+emit_string_term(char* str) {
+    size_t len = strlen(str);
+
+    emit("push constant %d\n", len);
+    emit("call String.new 1\n");
+    
+    for (int i = 0; i < len; i++) {
+        emit("push constant %d\n", (int)str[i]);
+        emit("call String.appendChar 2\n");
     }
 }
 
@@ -455,33 +472,40 @@ static void
 generate_constructor() {
     unsigned locals = routineSymtab_get_locals_count(ROUTINE_SYMTAB);
     unsigned fields = classSymtab_get_fields_count(CLASS_SYMTAB);
-    char* constructor_name = get_constructor_full_name();
+    char* full_constructor_name = get_subroutine_full_name();
     
-    emit("function %s %d\n", constructor_name, locals);
+    emit("function %s %d\n", full_constructor_name, locals);
     emit("push constant %d\n", fields);
     emit("call Memory.alloc 1\n");
     emit("pop pointer 0\n");
 
-    free(constructor_name);
+    free(full_constructor_name);
 }
 
 static void
 generate_function() {
     unsigned locals = routineSymtab_get_locals_count(ROUTINE_SYMTAB);
-    emit("function %s %d\n", CURRENT_SUBROUTINE->name, locals);
+    char* full_function_name = get_subroutine_full_name();
+
+    emit("function %s %d\n", full_function_name, locals);
+
+    free(full_function_name);
 }
 
 static void
 generate_method() {
     unsigned locals = routineSymtab_get_locals_count(ROUTINE_SYMTAB);
+    char* full_method_name = get_subroutine_full_name();
 
-    emit("function %s %d\n", CURRENT_SUBROUTINE->name, locals);
+    emit("function %s %d\n", full_method_name, locals);
     emit("push argument 0\n");
     emit("pop pointer 0\n");
+
+    free(full_method_name);
 }
 
 static char*
-get_constructor_full_name() {
+get_subroutine_full_name() {
     char* subroutine_name = CURRENT_SUBROUTINE->name;
     char* src_name = SRC_NAME;
 

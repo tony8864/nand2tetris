@@ -102,7 +102,8 @@ typedef enum {
     GROUPED_TERM,
     UNARY_TERM,
     SUBROUTINE_TERM,
-    KEYWORDCONST_TERM
+    KEYWORDCONST_TERM,
+    STRING_TERM
 } TermType;
 
 typedef enum {
@@ -168,6 +169,7 @@ typedef struct Term {
         struct Expression*      expr_val;
         struct UnaryTerm*       unary_val;
         struct SubroutineCall*  call_val;
+        char*                   str_val;
     } value;
 } Term;
 
