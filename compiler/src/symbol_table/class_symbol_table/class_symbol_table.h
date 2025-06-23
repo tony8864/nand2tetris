@@ -45,6 +45,12 @@ classSymtab_get_entry_index(ClassSymbolTableEntry* entry);
 unsigned
 classSymtab_get_fields_count(ClassSymbolTable* table);
 
+SubroutineType
+classSymtab_get_subroutine_type(SubroutineEntry* entry);
+
+// -----------------------------------------------------------------------------
+// Debugging
+// -----------------------------------------------------------------------------
 
 void
 classSymtab_print(ClassSymbolTable* table);

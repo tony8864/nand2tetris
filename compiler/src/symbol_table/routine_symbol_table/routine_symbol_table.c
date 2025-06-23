@@ -45,6 +45,10 @@ routine_scope_type_to_string(RoutineScopeType type);
 static unsigned long
 hash_string(char* str);
 
+// -----------------------------------------------------------------------------
+// Initialization & Cleanup
+// -----------------------------------------------------------------------------
+
 RoutineSymbolTable*
 routineSymtab_initialize() {
     RoutineSymbolTable* table = safe_malloc(sizeof(RoutineSymbolTable));
@@ -58,6 +62,27 @@ routineSymtab_initialize() {
 
     return table;
 }
+
+void
+routineSymtab_free(RoutineSymbolTable* table) {
+    RoutineSymbolTableEntry* curr;
+    RoutineSymbolTableEntry* tmp;
+    for (int i = 0; i < ROUTINE_BUCKETS; i++) {
+        if (table->buckets[i] != NULL) {
+            curr = table->buckets[i];
+            while (curr) {
+                tmp = curr;
+                curr = curr->next;
+                free_entry(tmp);
+            }
+        }
+    }
+    free(table);
+}
+
+// -----------------------------------------------------------------------------
+// Insertion & Lookup
+// -----------------------------------------------------------------------------
 
 RoutineSymbolTableEntry*
 routineSymtab_insert(RoutineSymbolTable* table, char* name, RoutineScopeType kind, VarType* type) {
@@ -90,39 +115,9 @@ routineSymtab_lookup(RoutineSymbolTable* table, char* name) {
     return NULL;
 }
 
-void
-routineSymtab_print(RoutineSymbolTable* table) {
-    printf("------------------- Routine Symbol Table -------------------\n");
-    printf("%-10s %-10s %-10s %-10s\n", "name", "kind", "type", "index");
-    RoutineSymbolTableEntry* curr;
-    for (int i = 0; i < ROUTINE_BUCKETS; i++) {
-        if (table->buckets[i] != NULL) {
-            curr = table->buckets[i];
-            while (curr) {
-                print_row(curr->variable);
-                curr = curr->next;
-            }
-        }
-    }
-    printf("\n");
-}
-
-void
-routineSymtab_free(RoutineSymbolTable* table) {
-    RoutineSymbolTableEntry* curr;
-    RoutineSymbolTableEntry* tmp;
-    for (int i = 0; i < ROUTINE_BUCKETS; i++) {
-        if (table->buckets[i] != NULL) {
-            curr = table->buckets[i];
-            while (curr) {
-                tmp = curr;
-                curr = curr->next;
-                free_entry(tmp);
-            }
-        }
-    }
-    free(table);
-}
+// -----------------------------------------------------------------------------
+// Accessors
+// -----------------------------------------------------------------------------
 
 char*
 routineSymtab_get_str_kind(RoutineSymbolTableEntry* entry) {
@@ -160,6 +155,31 @@ routineSymtab_get_locals_count(RoutineSymbolTable* table) {
     }
     return locals;
 }
+
+// -----------------------------------------------------------------------------
+// Debugging
+// -----------------------------------------------------------------------------
+
+void
+routineSymtab_print(RoutineSymbolTable* table) {
+    printf("------------------- Routine Symbol Table -------------------\n");
+    printf("%-10s %-10s %-10s %-10s\n", "name", "kind", "type", "index");
+    RoutineSymbolTableEntry* curr;
+    for (int i = 0; i < ROUTINE_BUCKETS; i++) {
+        if (table->buckets[i] != NULL) {
+            curr = table->buckets[i];
+            while (curr) {
+                print_row(curr->variable);
+                curr = curr->next;
+            }
+        }
+    }
+    printf("\n");
+}
+
+// -----------------------------------------------------------------------------
+// Static Definitions
+// -----------------------------------------------------------------------------
 
 static RoutineVariable*
 create_variable(char* name, RoutineScopeType kind, VarType* type, unsigned index) {

@@ -3,8 +3,19 @@
 
 #include "common.h"
 
+// -----------------------------------------------------------------------------
+// Initialization & Cleanup
+// -----------------------------------------------------------------------------
+
 RoutineSymbolTable*
 routineSymtab_initialize();
+
+void
+routineSymtab_free(RoutineSymbolTable* table);
+
+// -----------------------------------------------------------------------------
+// Insertion & Lookup
+// -----------------------------------------------------------------------------
 
 RoutineSymbolTableEntry*
 routineSymtab_insert(RoutineSymbolTable* table, char* name, RoutineScopeType kind, VarType* type);
@@ -12,11 +23,9 @@ routineSymtab_insert(RoutineSymbolTable* table, char* name, RoutineScopeType kin
 RoutineSymbolTableEntry*
 routineSymtab_lookup(RoutineSymbolTable* table, char* name);
 
-void
-routineSymtab_print(RoutineSymbolTable* table);
-
-void
-routineSymtab_free(RoutineSymbolTable* table);
+// -----------------------------------------------------------------------------
+// Accessors
+// -----------------------------------------------------------------------------
 
 char*
 routineSymtab_get_str_kind(RoutineSymbolTableEntry* entry);
@@ -30,4 +39,11 @@ routineSymtab_get_vartype(RoutineSymbolTableEntry* entry);
 unsigned
 routineSymtab_get_locals_count(RoutineSymbolTable* table);
 
-#endif
+// -----------------------------------------------------------------------------
+// Debugging
+// -----------------------------------------------------------------------------
+
+void
+routineSymtab_print(RoutineSymbolTable* table);
+
+#endif // ROUTINE_SYM_TAB_H

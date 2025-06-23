@@ -204,6 +204,11 @@ classSymtab_get_fields_count(ClassSymbolTable* table) {
     return fields;
 }
 
+SubroutineType
+classSymtab_get_subroutine_type(SubroutineEntry* entry) {
+    return entry->subroutine->type;
+}
+
 // -----------------------------------------------------------------------------
 // Debugging
 // -----------------------------------------------------------------------------

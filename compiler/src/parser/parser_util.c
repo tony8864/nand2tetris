@@ -361,7 +361,6 @@ parserutil_insert_subroutine(Subroutine* subroutine) {
         exit(1);
     }
     classSymtab_insert_routine(CLASS_SYMTAB, subroutine);
-    printf("heren\n");
 }
 
 void
@@ -476,7 +475,6 @@ free_term(Term* t) {
             break;
         }
         case SUBROUTINE_TERM: {
-            printf("calling free routine\n");
             free_subroutine_call(t->value.call_val);
             break;
         }

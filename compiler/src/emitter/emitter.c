@@ -15,71 +15,52 @@ extern int yylineno;
 static unsigned if_label_count = 0;
 static unsigned while_label_count = 0;
 
-static void
-emit(const char* fmt, ...);
+#define IS_CALL_DIRECT(call)  ((call)->caller == NULL)
 
-static void
-emit_subroutine_term(SubroutineCall* call);
+// ───────────── Emit Core ─────────────
+static void emit(const char* fmt, ...);
 
-static void
-emit_expression_list(ExpressionList* list);
+// ───── Emit: Expressions & Terms ─────
+static void emit_expression(Expression* e);
+static void emit_term(Term* term);
+static void emit_unary_term(UnaryTerm* unary);
+static void emit_expression_list(ExpressionList* list);
+static void emit_opTermList(OpTerm* opTerm);
+static void emit_keywordconst_term(KeywordConstType type);
 
-static void
-emit_subroutine_call(SubroutineCall* call);
+// ──── Emit: Subroutines & Calls ─────
+static void emit_subroutine_call(SubroutineCall* call);
+static void emit_direct_call(SubroutineCall* call);
+static void emit_indirect_call(SubroutineCall* call);
+static void emit_method_call(SubroutineCall* call);
+static void emit_function_call(SubroutineCall* call);
+static void is_method_in_current_class(char* name);
+static void emit_subroutine_term(SubroutineCall* call);
 
-static VarType*
-get_vartype_from_name(char* name);
+// ───── Emit: Variables & Symbols ─────
+static void emit_variable(char* name, char* op);
+static void emit_routine_var(RoutineSymbolTableEntry* entry, char* op);
+static void emit_class_var(ClassSymbolTableEntry* entry, char* op);
+static void emit_var_access(char* op, char* kind, unsigned index);
 
-static void
-emit_unary_term(UnaryTerm* unary);
+// ───── Emit: Operators ─────
+static void emit_op(OperationType op);
+static void emit_unary_op(UnaryOperationType op);
 
-static void
-emit_expression(Expression* e);
+// ───── Symbol Table / Type Helpers ─────
+static VarType* get_vartype_from_name(char* name);
+static unsigned is_in_symbol_table(char* name);
 
-static void
-emit_term(Term* term);
+// ───── Utility Generators ─────
+static unsigned get_expr_list_len(ExpressionList* list);
+static char* generate_if_label();
+static char* generate_while_label();
+static void generate_constructor();
+static char* get_constructor_full_name();
 
-static  void
-emit_opTermList(OpTerm* opTerm);
-
-static void
-emit_op(OperationType op);
-
-static void
-emit_unary_op(UnaryOperationType op);
-
-static void
-emit_variable(char* name, char* op);
-
-static void
-emit_routine_var(RoutineSymbolTableEntry* entry, char* op);
-
-static void
-emit_class_var(ClassSymbolTableEntry* entry, char* op);
-
-static void
-emit_var_access(char* op, char* kind, unsigned index);
-
-static unsigned
-get_expr_list_len(ExpressionList* list);
-
-static unsigned
-is_in_symbol_table(char* name);
-
-static char*
-generate_if_label();
-
-static char*
-generate_while_label();
-
-static void
-generate_constructor();
-
-static char*
-get_constructor_full_name();
-
-static void
-emit_keywordconst_term(KeywordConstType type);
+// -----------------------------------------------------------------------------
+// VM Code Generation for Statements
+// -----------------------------------------------------------------------------
 
 void
 emitter_generate_if_expression(Expression* e) {
@@ -155,7 +136,6 @@ emitter_generate_return_statement(Expression* e) {
 
 void
 emitter_generate_do_statement(SubroutineCall* call) {
-    emit_expression_list(call->exprList);
     emit_subroutine_call(call);
     emit("pop temp 0\n");
 }
@@ -176,38 +156,26 @@ emitter_generate_subroutine() {
     }
 }
 
-static void
-generate_constructor() {
-    unsigned locals = routineSymtab_get_locals_count(ROUTINE_SYMTAB);
-    unsigned fields = classSymtab_get_fields_count(CLASS_SYMTAB);
-    char* constructor_name = get_constructor_full_name();
-    
-    emit("function %s %d\n", constructor_name, locals);
-    emit("push constant %d\n", fields);
-    emit("call Memory.alloc 1\n");
-    emit("pop pointer 0\n");
+// -----------------------------------------------------------------------------
+// Static Definitions
+// -----------------------------------------------------------------------------
 
-    free(constructor_name);
-}
-
-static char*
-get_constructor_full_name() {
-    char* subroutine_name = CURRENT_SUBROUTINE->name;
-    char* src_name = SRC_NAME;
-
-    size_t len = strlen(subroutine_name) + strlen(src_name) + 1 + 1; // +1 for '.' +1 for'\0'
-    char* full_name = safe_malloc(sizeof(char) * len);
-
-    snprintf(full_name, len, "%s.%s", src_name, subroutine_name);
-    return full_name;
-}
-
+// ───────────── Emit Core ─────────────
 static void
 emit(const char* fmt, ...) {
     va_list args;
     va_start(args, fmt);
     vfprintf(VM_FILE, fmt, args);
     va_end(args);
+}
+
+// ───── Emit: Expressions & Terms ─────
+static void
+emit_expression(Expression* e) {
+    Term* term = e->term;
+    OpTerm* opTerm = e->rest;
+    emit_term(term);
+    emit_opTermList(opTerm);
 }
 
 static void
@@ -240,6 +208,29 @@ emit_term(Term* term) {
 }
 
 static void
+emit_unary_term(UnaryTerm* unary) {
+    emit_term(unary->term);
+    emit_unary_op(unary->op);
+}
+
+static void
+emit_expression_list(ExpressionList* list) {
+    while (list) {
+        emit_expression(list->expr);
+        list = list->next;
+    }
+}
+
+static  void
+emit_opTermList(OpTerm* opTerm) {
+    while (opTerm) {
+        emit_term(opTerm->term);
+        emit_op(opTerm->op);
+        opTerm = opTerm->next;
+    }
+}
+
+static void
 emit_keywordconst_term(KeywordConstType type) {
     switch(type) {
         case KEYWORD_TRUE: {
@@ -262,90 +253,84 @@ emit_keywordconst_term(KeywordConstType type) {
     }
 }
 
+// ──── Emit: Subroutines & Calls ─────
+static void
+emit_subroutine_call(SubroutineCall* call) {
+    if (IS_CALL_DIRECT(call)) {
+        emit_direct_call(call);
+    }
+    else {
+        emit_indirect_call(call);
+    }
+}
+
+static void
+emit_direct_call(SubroutineCall* call) {
+    unsigned args = 1 + get_expr_list_len(call->exprList);
+    emit("push pointer 0\n");
+    emit_expression_list(call->exprList);
+    emit("call %s.%s %d\n", SRC_NAME, call->subroutineName, args);
+}
+
+static void
+emit_indirect_call(SubroutineCall* call) {
+    unsigned is_variable = is_in_symbol_table(call->caller);
+    unsigned is_class = common_is_class_name(call->caller);
+
+    if (!is_variable && !is_class) {
+        printf("[Error]: %s:%d: Unrecognized symbol \"%s\".\n", FULL_SRC_PATH, yylineno, call->caller);
+        exit(1);
+    }
+
+    if (is_variable) {
+        emit_method_call(call);
+    }
+    else {
+        emit_function_call(call);
+    }
+}
+
+static void
+emit_method_call(SubroutineCall* call) {
+    VarType* originalType = get_vartype_from_name(call->caller);
+    VarType* varType = common_copy_vartype(originalType);
+    char* className = common_get_classname_from_type(varType);
+    unsigned args = 1 + get_expr_list_len(call->exprList);
+
+    emit_variable(call->caller, "push");
+    emit_expression_list(call->exprList);
+    emit("call %s.%s %d\n", className, call->subroutineName, args);
+
+    common_free_vartype(varType);
+}
+
+static void emit_function_call(SubroutineCall* call) {
+    unsigned args = get_expr_list_len(call->exprList);
+
+    emit_expression_list(call->exprList);
+    emit("call %s.%s %d\n", call->caller, call->subroutineName, args);
+}
+
+static void
+is_method_in_current_class(char* name) {
+    SubroutineEntry* entry = classSymtab_lookup_routine(CLASS_SYMTAB, name);
+    if (!entry) {
+        printf("[Error]: %s:%d: Method \"%s\" does not exist in the current class.\n", FULL_SRC_PATH, yylineno, name);
+        exit(1);
+    }
+
+    if (classSymtab_get_subroutine_type(entry) != METHOD_TYPE) {
+        printf("[Error]: %s:%d: Subroutine \"%s\" called as method.\n", FULL_SRC_PATH, yylineno, name);
+        exit(1);
+    }
+}
+
 static void
 emit_subroutine_term(SubroutineCall* call) {
-    emit_expression_list(call->exprList);
     emit_subroutine_call(call);
 }
 
-static void
-emit_expression_list(ExpressionList* list) {
-    while (list) {
-        emit_expression(list->expr);
-        list = list->next;
-    }
-}
-
-static void
-emit_subroutine_call(SubroutineCall* call) {
-    unsigned argsCount = get_expr_list_len(call->exprList);
-    
-    if (is_in_symbol_table(call->caller)) {
-        printf("jere\n");
-        VarType* type = get_vartype_from_name(call->caller);
-        
-        char* className = common_get_classname_from_type(type);
-        
-        emit("call %s.%s %u\n", className, call->subroutineName, argsCount);
-    }
-    else {
-        printf("jere\n");
-        emit("call %s.%s %u\n", call->caller, call->subroutineName, argsCount);
-    }
-}
-
-static void
-emit_unary_term(UnaryTerm* unary) {
-    emit_term(unary->term);
-    emit_unary_op(unary->op);
-}
-
-static void
-emit_unary_op(UnaryOperationType op) {
-    switch(op) {
-        case UNARY_MINUS: {
-            emit("neg\n");
-            break;
-        }
-        case UNARY_NEG: {
-            emit("not\n");
-            break;
-        }
-        default: printf("Error: Unrecognized unary op.\n"); exit(1);
-    }
-}
-
-static void
-emit_expression(Expression* e) {
-    Term* term = e->term;
-    OpTerm* opTerm = e->rest;
-    emit_term(term);
-    emit_opTermList(opTerm);
-}
-
-static  void
-emit_opTermList(OpTerm* opTerm) {
-    while (opTerm) {
-        emit_term(opTerm->term);
-        emit_op(opTerm->op);
-        opTerm = opTerm->next;
-    }
-}
-
-static void
-emit_op(OperationType op) {
-    switch(op) {
-        case PLUS_OP:    emit("add\n"); break;
-        case MINUS_OP:   emit("sub\n"); break;
-        case AND_OP:     emit("and\n"); break;
-        case OR_OP:      emit("or\n"); break;
-        case LESS_OP:    emit("lt\n"); break;
-        case GREATER_OP: emit("gt\n"); break;
-        case EQUAL_OP:   emit("eq\n"); break;
-        default: printf("Error: Unexpected operation type.\n"); exit(1);
-    }
-}
-
+// ───── Emit: Variables & Symbols ─────
 static void
 emit_variable(char* name, char* op) {
     RoutineSymbolTableEntry* routineEntry = routineSymtab_lookup(ROUTINE_SYMTAB, name);
@@ -383,23 +368,37 @@ emit_var_access(char* op, char* kind, unsigned index) {
     emit("%s %s %u\n", op, kind, index);
 }
 
-static unsigned
-get_expr_list_len(ExpressionList* list) {
-    unsigned i = 0;
-    while (list) {
-        list = list->next;
-        i++;
+// ───── Emit: Operators ─────
+static void
+emit_op(OperationType op) {
+    switch(op) {
+        case PLUS_OP:    emit("add\n"); break;
+        case MINUS_OP:   emit("sub\n"); break;
+        case AND_OP:     emit("and\n"); break;
+        case OR_OP:      emit("or\n"); break;
+        case LESS_OP:    emit("lt\n"); break;
+        case GREATER_OP: emit("gt\n"); break;
+        case EQUAL_OP:   emit("eq\n"); break;
+        default: printf("Error: Unexpected operation type.\n"); exit(1);
     }
-    return i;
 }
 
-static unsigned
-is_in_symbol_table(char* name) {
-    ClassSymbolTableEntry* classEntry = classSymtab_lookup_variable(CLASS_SYMTAB, name);
-    RoutineSymbolTableEntry* routineEntry = routineSymtab_lookup(ROUTINE_SYMTAB, name);
-    return (classEntry != NULL || routineEntry != NULL);
+static void
+emit_unary_op(UnaryOperationType op) {
+    switch(op) {
+        case UNARY_MINUS: {
+            emit("neg\n");
+            break;
+        }
+        case UNARY_NEG: {
+            emit("not\n");
+            break;
+        }
+        default: printf("Error: Unrecognized unary op.\n"); exit(1);
+    }
 }
 
+// ───── Symbol Table / Type Helpers ─────
 static VarType*
 get_vartype_from_name(char* name) {
     ClassSymbolTableEntry* classEntry = classSymtab_lookup_variable(CLASS_SYMTAB, name);
@@ -416,6 +415,24 @@ get_vartype_from_name(char* name) {
     exit(1);
 }
 
+static unsigned
+is_in_symbol_table(char* name) {
+    ClassSymbolTableEntry* classEntry = classSymtab_lookup_variable(CLASS_SYMTAB, name);
+    RoutineSymbolTableEntry* routineEntry = routineSymtab_lookup(ROUTINE_SYMTAB, name);
+    return (classEntry != NULL || routineEntry != NULL);
+}
+
+// ───── Utility Generators ─────
+static unsigned
+get_expr_list_len(ExpressionList* list) {
+    unsigned i = 0;
+    while (list) {
+        list = list->next;
+        i++;
+    }
+    return i;
+}
+
 static char*
 generate_if_label() {
     char* label = malloc(32);
@@ -428,4 +445,30 @@ generate_while_label() {
     char* label = malloc(32);
     snprintf(label, 32, "WHILE_LABEL_%d", while_label_count);
     return label;
+}
+
+static void
+generate_constructor() {
+    unsigned locals = routineSymtab_get_locals_count(ROUTINE_SYMTAB);
+    unsigned fields = classSymtab_get_fields_count(CLASS_SYMTAB);
+    char* constructor_name = get_constructor_full_name();
+    
+    emit("function %s %d\n", constructor_name, locals);
+    emit("push constant %d\n", fields);
+    emit("call Memory.alloc 1\n");
+    emit("pop pointer 0\n");
+
+    free(constructor_name);
+}
+
+static char*
+get_constructor_full_name() {
+    char* subroutine_name = CURRENT_SUBROUTINE->name;
+    char* src_name = SRC_NAME;
+
+    size_t len = strlen(subroutine_name) + strlen(src_name) + 1 + 1; // +1 for '.' +1 for'\0'
+    char* full_name = safe_malloc(sizeof(char) * len);
+
+    snprintf(full_name, len, "%s.%s", src_name, subroutine_name);
+    return full_name;
 }

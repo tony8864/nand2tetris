@@ -235,8 +235,9 @@ subroutineHeader
                     {
                         ROUTINE_SYMTAB = routineSymtab_initialize();
                         if ($1 == METHOD_TYPE) {
-                            char* className = gbl_context.currentSourceName;
-                            routineSymtab_insert(ROUTINE_SYMTAB, className, ARG_TYPE, NULL);
+                            VarType* type = common_create_vartype(CLASS_TYPE, SRC_NAME);
+                            routineSymtab_insert(ROUTINE_SYMTAB, "this", ARG_TYPE, type);
+                            free(type);
                         }
                         else
                         if ($1 == CONSTRUCTOR_TYPE) {
