@@ -56,6 +56,7 @@ static unsigned get_expr_list_len(ExpressionList* list);
 static char* generate_if_label();
 static char* generate_while_label();
 static void generate_constructor();
+static void generate_function();
 static void generate_method();
 static char* get_constructor_full_name();
 
@@ -149,6 +150,7 @@ emitter_generate_subroutine() {
             break;
         }
         case FUNCTION_TYPE: {
+            generate_function();
             break;
         }
         case METHOD_TYPE: {
@@ -461,6 +463,12 @@ generate_constructor() {
     emit("pop pointer 0\n");
 
     free(constructor_name);
+}
+
+static void
+generate_function() {
+    unsigned locals = routineSymtab_get_locals_count(ROUTINE_SYMTAB);
+    emit("function %s %d\n", CURRENT_SUBROUTINE->name, locals);
 }
 
 static void
