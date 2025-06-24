@@ -26,6 +26,9 @@ void
 emitter_generate_let_statement(char* varName, Expression* e);
 
 void
+emitter_generate_array_let_statement(char* varName, Expression* expr1, Expression* expr2);
+
+void
 emitter_generate_return_statement(Expression* e);
 
 void

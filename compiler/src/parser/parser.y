@@ -90,7 +90,7 @@ extern int      yylineno;
 %type<opType>           operation
 %type<term>             term
 %type<opTerm>           operationTerm optionalTerm
-%type<expression>       expression opetionalReturnExpression
+%type<expression>       expression opetionalReturnExpression optionalArrayExpression
 %type<expressionList>   expressionList optionalExpressionList
 %type<unaryOp>          unaryOperation
 %type<subroutineCall>   subroutineCall directcall methodcall
@@ -382,8 +382,15 @@ optionalelse
 letstatement
             : LET varName optionalArrayExpression EQUAL expression SEMICOLON
                 {
-                    emitter_generate_let_statement($2, $5);
-                    parserutil_free_let_statement($2, $5);
+                    
+                    if ($3 != NULL) {
+                        emitter_generate_array_let_statement($2, $3, $5);
+                        parserutil_free_array_let_statement($2, $3, $5);
+                    }
+                    else {
+                        emitter_generate_let_statement($2, $5);
+                        parserutil_free_let_statement($2, $5);
+                    }   
                 }
             ;
 
@@ -431,7 +438,13 @@ opetionalReturnExpression
 
 optionalArrayExpression
                     : OPEN_BRACKET expression CLOSE_BRACKET
+                        {
+                            $$ = $2;
+                        }
                     | %empty
+                        {
+                            $$ = NULL;
+                        }
                     ;
 
 expression
@@ -480,7 +493,8 @@ term
         }
     | varName OPEN_BRACKET expression CLOSE_BRACKET
         {
-            $$ = NULL;
+            $$ = parserutil_create_array_term($1, $3);
+            free($1);
         }
     | OPEN_PAR expression CLOSE_PAR
         {   

@@ -70,6 +70,9 @@ parserutil_create_keyword_const_term(KeywordConstType type);
 Term*
 parserutil_create_string_term(char* str);
 
+Term*
+parserutil_create_array_term(char* arrName, Expression* e);
+
 // -----------------------------------------------------------------------------
 // Operators and Expressions
 // -----------------------------------------------------------------------------
@@ -140,6 +143,9 @@ parserutil_validate_class_name(char* className);
 
 void
 parserutil_free_let_statement(char* varName, Expression* e);
+
+void
+parserutil_free_array_let_statement(char* varName, Expression* expr1, Expression* expr2);
 
 void
 parserutil_free_if_expression(Expression* e);

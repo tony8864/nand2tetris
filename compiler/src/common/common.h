@@ -103,7 +103,8 @@ typedef enum {
     UNARY_TERM,
     SUBROUTINE_TERM,
     KEYWORDCONST_TERM,
-    STRING_TERM
+    STRING_TERM,
+    ARRAY_TERM
 } TermType;
 
 typedef enum {
@@ -160,6 +161,11 @@ typedef struct UnaryTerm {
     UnaryOperationType op;
 } UnaryTerm;
 
+typedef struct Indexed {
+    char* arrayName;
+    struct Expression* expr;
+} Indexed;
+
 typedef struct Term {
     TermType type;
     union {
@@ -170,6 +176,7 @@ typedef struct Term {
         struct UnaryTerm*       unary_val;
         struct SubroutineCall*  call_val;
         char*                   str_val;
+        Indexed*                indexed_val;
     } value;
 } Term;
 

@@ -28,6 +28,7 @@ static void emit_expression_list(ExpressionList* list);
 static void emit_opTermList(OpTerm* opTerm);
 static void emit_keywordconst_term(KeywordConstType type);
 static void emit_string_term(char* str);
+static void emit_array_term(Indexed* array);
 
 // ──── Emit: Subroutines & Calls ─────
 static void emit_subroutine_call(SubroutineCall* call);
@@ -126,6 +127,20 @@ emitter_generate_let_statement(char* varName, Expression* e) {
 }
 
 void
+emitter_generate_array_let_statement(char* varName, Expression* expr1, Expression* expr2) {
+    emit_expression(expr1);
+    emit_variable(varName, "push");
+    emit("add\n");
+
+    emit_expression(expr2);
+    emit("pop temp 0\n");
+    
+    emit("pop pointer 1\n");
+    emit("push temp 0\n");
+    emit("pop that 0\n");
+}
+
+void
 emitter_generate_return_statement(Expression* e) {
     if (e == NULL) {
         emit("push constant 0\n");
@@ -208,9 +223,15 @@ emit_term(Term* term) {
         }
         case KEYWORDCONST_TERM: {
             emit_keywordconst_term(term->value.keywordconst_val);
+            break;
         }
         case STRING_TERM: {
             emit_string_term(term->value.str_val);
+            break;
+        }
+        case ARRAY_TERM: {
+            emit_array_term(term->value.indexed_val);
+            break;
         }
     }
 }
@@ -272,6 +293,19 @@ emit_string_term(char* str) {
         emit("push constant %d\n", (int)str[i]);
         emit("call String.appendChar 2\n");
     }
+}
+
+static void
+emit_array_term(Indexed* array) {
+    char* arrayName = array->arrayName;
+    Expression* expr = array->expr;
+
+    emit_expression(expr);
+    emit_variable(arrayName, "push");
+    emit("add\n");
+
+    emit("pop pointer 1\n");
+    emit("push that 0\n");
 }
 
 // ──── Emit: Subroutines & Calls ─────

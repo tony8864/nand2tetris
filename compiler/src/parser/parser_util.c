@@ -13,35 +13,35 @@ extern int yylineno;
 
 #define MAX_CLASS_VAR_DEC_LIST 20
 
-static void
-check_class_var_redeclared(char* name);
+// ──────────────────────────────────────────────
+// Validation Functions
+// ──────────────────────────────────────────────
 
-static void
-check_routine_var_redeclared(char* name);
+static void check_class_var_redeclared(char* name);
+static void check_routine_var_redeclared(char* name);
+static void check_if_name_is_valid_class(char* name);
 
-static void
-check_if_name_is_valid_class(char* name);
+// ──────────────────────────────────────────────
+// Freeing Parameters
+// ──────────────────────────────────────────────
 
-static void
-free_param(Param* p);
+static void free_param(Param* p);
 
-static void
-free_expression(Expression* e);
+// ──────────────────────────────────────────────
+// Freeing Expressions and Terms
+// ──────────────────────────────────────────────
 
-static void
-free_term(Term* t);
+static void free_expression(Expression* e);
+static void free_expression_list(ExpressionList* list);
+static void free_term(Term* t);
+static void free_opterm(OpTerm* opt);
+static void free_unary_term(UnaryTerm* t);
 
-static void
-free_opterm(OpTerm* opt);
+// ──────────────────────────────────────────────
+// Freeing Subroutine Calls
+// ──────────────────────────────────────────────
 
-static void
-free_subroutine_call(SubroutineCall* call);
-
-static void
-free_expression_list(ExpressionList* list);
-
-static void
-free_unary_term(UnaryTerm* t);
+static void free_subroutine_call(SubroutineCall* call);
 
 // -----------------------------------------------------------------------------
 // Param List Utilities
@@ -216,12 +216,14 @@ parserutil_create_subroutine_term(SubroutineCall* call) {
 
 Term*
 parserutil_create_unary_term(UnaryOperationType op, Term* term) {
-    Term* t = safe_malloc(sizeof(Term));
     UnaryTerm* ut = safe_malloc(sizeof(UnaryTerm));
     ut->term = term;
     ut->op = op;
+
+    Term* t = safe_malloc(sizeof(Term));
     t->value.unary_val = ut;
     t->type = UNARY_TERM;
+
     return t;
 }
 
@@ -238,6 +240,19 @@ parserutil_create_string_term(char* str) {
     Term* t = safe_malloc(sizeof(Term));
     t->type = STRING_TERM;
     t->value.str_val = strdup(str);
+    return t;
+}
+
+Term*
+parserutil_create_array_term(char* arrName, Expression* e) {
+    Indexed* indexed = safe_malloc(sizeof(Indexed));
+    indexed->arrayName = strdup(arrName);
+    indexed->expr = e;
+
+    Term* t = safe_malloc(sizeof(Term));
+    t->type = ARRAY_TERM;
+    t->value.indexed_val = indexed;
+
     return t;
 }
 
@@ -401,6 +416,13 @@ parserutil_free_let_statement(char* varName, Expression* e) {
 }
 
 void
+parserutil_free_array_let_statement(char* varName, Expression* expr1, Expression* expr2) {
+    free_expression(expr1);
+    free_expression(expr2);
+    free(varName);
+}
+
+void
 parserutil_free_if_expression(Expression* e) {
     free_expression(e);
 }
@@ -426,6 +448,10 @@ parser_util_free_return_statement(Expression* e) {
 // Static Definitions
 // -----------------------------------------------------------------------------
 
+// ──────────────────────────────────────────────
+// Validation Functions
+// ──────────────────────────────────────────────
+
 static void
 check_class_var_redeclared(char* name) {
     if (classSymtab_lookup_variable(CLASS_SYMTAB, name) != NULL) {
@@ -443,19 +469,27 @@ check_routine_var_redeclared(char* name) {
 }
 
 static void
-free_param(Param* p) {
-    common_free_vartype(p->type);
-    free(p->name);
-    free(p);
-}
-
-static void
 check_if_name_is_valid_class(char* name) {
     if (name && !common_is_class_name(name)) {
         printf("Error at line %d: \"%s\" is not a valid class name.\n", yylineno, name);
         exit(1);
     }
 }
+
+// ──────────────────────────────────────────────
+// Freeing Parameters
+// ──────────────────────────────────────────────
+
+static void
+free_param(Param* p) {
+    common_free_vartype(p->type);
+    free(p->name);
+    free(p);
+}
+
+// ──────────────────────────────────────────────
+// Freeing Expressions and Terms
+// ──────────────────────────────────────────────
 
 static void
 free_expression(Expression* e) {
@@ -468,6 +502,19 @@ free_expression(Expression* e) {
         free_opterm(opTerm);
     }
     free(e);
+}
+
+static void
+free_expression_list(ExpressionList* list) {
+    ExpressionList* cur = list;
+    while (cur) {
+        if (cur->expr) {
+            free_expression(cur->expr);
+        }
+        ExpressionList* next = cur->next;
+        free(cur);
+        cur = next;
+    }
 }
 
 static void
@@ -494,8 +541,16 @@ free_term(Term* t) {
             free(t->value.str_val);
             break;
         }
+        case ARRAY_TERM: {
+            free(t->value.indexed_val->arrayName);
+            free_expression(t->value.indexed_val->expr);
+            free(t->value.indexed_val);
+        }
+        case INT_TERM: {
+            break;
+        }
         default: {
-            printf("[Error]: Uknown term type.\n");
+            printf("[Error]: Uknown term type: %d\n", type);
             exit(1);
         }
     }
@@ -516,6 +571,16 @@ free_opterm(OpTerm* opTerm) {
 }
 
 static void
+free_unary_term(UnaryTerm* t) {
+    free(t->term);
+    free(t);
+}
+
+// ──────────────────────────────────────────────
+// Freeing Subroutine Calls
+// ──────────────────────────────────────────────
+
+static void
 free_subroutine_call(SubroutineCall* call) {
     free_expression_list(call->exprList);
     free(call->subroutineName);
@@ -523,23 +588,4 @@ free_subroutine_call(SubroutineCall* call) {
         free(call->caller);
     }
     free(call);
-}
-
-static void
-free_expression_list(ExpressionList* list) {
-    ExpressionList* cur = list;
-    while (cur) {
-        if (cur->expr) {
-            free_expression(cur->expr);
-        }
-        ExpressionList* next = cur->next;
-        free(cur);
-        cur = next;
-    }
-}
-
-static void
-free_unary_term(UnaryTerm* t) {
-    free(t->term);
-    free(t);
 }
