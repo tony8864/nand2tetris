@@ -5,14 +5,17 @@
 
 typedef struct {
     char*       output_folder_name;
-    char*       input_filename;
     FILE*       output_file;
+    char*       input_filename;
     unsigned    instruction_count;
     char*       current_function_name;
     unsigned    return_address_count;
 } VMContext;
 
 extern VMContext vm_context;
+
+#define OUT_FOLDER  (vm_context.output_folder_name)
+#define OUT_FILE    (vm_context.output_file)
 
 typedef enum {
     SEG_LOCAL,

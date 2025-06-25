@@ -546,11 +546,12 @@ free_term(Term* t) {
             free_expression(t->value.indexed_val->expr);
             free(t->value.indexed_val);
         }
-        case INT_TERM: {
+        case INT_TERM:
+        case KEYWORDCONST_TERM: {
             break;
         }
         default: {
-            printf("[Error]: Uknown term type: %d\n", type);
+            printf("[Error]: %s.%d: Uknown term type: %d\n", FULL_SRC_PATH, yylineno, type);
             exit(1);
         }
     }
@@ -572,7 +573,7 @@ free_opterm(OpTerm* opTerm) {
 
 static void
 free_unary_term(UnaryTerm* t) {
-    free(t->term);
+    free_term(t->term);
     free(t);
 }
 

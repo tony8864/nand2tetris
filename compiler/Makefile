@@ -116,3 +116,6 @@ build/safe_util.o: ${SAFEUTIL_DEP}
 
 clean:
 	rm -rf build out
+
+clean-out:
+	rm -rf out

@@ -27,4 +27,4 @@ build/scanner.c: src/scanner.l
 	flex --outfile=build/scanner.c $<
 
 clean:
-	rm -rf build
+	rm -rf build out

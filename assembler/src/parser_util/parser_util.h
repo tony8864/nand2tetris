@@ -5,7 +5,7 @@ void
 parserUtil_initialize();
 
 void
-parserUtil_setOutputFile(const char* filename);
+parserUtil_setOutputFile();
 
 void
 parserUtil_setFirstPass();

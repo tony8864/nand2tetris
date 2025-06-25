@@ -72,8 +72,8 @@ RETURN_COMMAND  :   RETURN                      { vmparserUtil_handleReturnOpera
 %%
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
-        printf("Usage: %s <input_folder> <output_folder>\n", argv[0]);
+    if (argc != 2) {
+        printf("Usage: %s <input_folder>\n", argv[0]);
         return 1;
     }
 
@@ -82,26 +82,20 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    if (!fileUtil_isDirectory(argv[2])) {
-        fprintf(stderr, "Error: Output path '%s' is not a directory.\n", argv[2]);
-        return 1;
-    }
-
-    vm_context.output_folder_name = strdup(argv[2]);
+    OUT_FOLDER = strdup("out");
 
     parse_vm_folder(argv[1]);
     
     vmparserUtil_combine_asm_files(argv[1]);
-    vmparserUtil_append_bootstrap_code(argv[1]);
-    vmparserUtil_write_to_folder(argv[1]);
+    vmparserUtil_append_bootstrap_code();
 
     return 0;
 }
 
 static void
-parse_vm_folder(char* path) {
+parse_vm_folder(char* input_folder) {
     int count;
-    char** files = fileUtil_get_files(path, &count);
+    char** files = fileUtil_get_files(input_folder, &count);
   
     for (int i = 0; i < count; i++) {
         parse_vm_file(files[i]);

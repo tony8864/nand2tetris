@@ -93,6 +93,8 @@ typedef enum {
     LESS_OP,
     GREATER_OP,
     EQUAL_OP,
+    MUL_OP,
+    DIV_OP,
     UNDEFINED
 } OperationType;
 

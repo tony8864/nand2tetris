@@ -7,13 +7,10 @@ void
 vmparserUtil_open_out_file(char* filename);
 
 void
-vmparserUtil_combine_asm_files(char* filename);
+vmparserUtil_combine_asm_files();
 
 void
-vmparserUtil_append_bootstrap_code(char* filename);
-
-void
-vmparserUtil_write_to_folder(char* filename);
+vmparserUtil_append_bootstrap_code();
 
 void
 vmparserUtil_handleMemoryOperation(MemOp_T op, Segment_T seg, int index);

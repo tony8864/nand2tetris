@@ -54,4 +54,4 @@ build/scanner.c: src/scanner.l
 	flex --outfile=build/scanner.c $<
 
 clean:
-	rm -rf build *.asm
+	rm -rf build *.asm out

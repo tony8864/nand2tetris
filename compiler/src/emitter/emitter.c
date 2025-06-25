@@ -12,10 +12,17 @@
 
 extern int yylineno;
 
-static unsigned if_label_count = 0;
-static unsigned while_label_count = 0;
-
 #define IS_CALL_DIRECT(call)  ((call)->caller == NULL)
+
+#define MAX_NESTING 256
+
+int if_label_stack[MAX_NESTING];
+int if_label_top = -1;
+int if_label_counter =  0;
+
+int while_label_stack[MAX_NESTING];
+int while_label_top = -1;
+int while_label_counter =  0;
 
 // ───────────── Emit Core ─────────────
 static void emit(const char* fmt, ...);
@@ -55,69 +62,65 @@ static unsigned is_in_symbol_table(char* name);
 
 // ───── Utility Generators ─────
 static unsigned get_expr_list_len(ExpressionList* list);
-static char* generate_if_label();
-static char* generate_while_label();
 static void generate_constructor();
 static void generate_function();
 static void generate_method();
 static char* get_subroutine_full_name();
 
+// ───── If Label Stack Utility ─────
+static void push_if_label();
+static int pop_if_label();
+static int current_if_label();
+
+// ───── While Label Stack Utility ─────
+static void push_while_label();
+static int pop_while_label();
+static int current_while_label();
+
 // -----------------------------------------------------------------------------
 // VM Code Generation for Statements
 // -----------------------------------------------------------------------------
-
 void
 emitter_generate_if_expression(Expression* e) {
-    char* label = generate_if_label();
+    push_if_label();
     emit_expression(e);
     emit("not\n");
-    emit("if-goto %s\n", label);
-    free(label);
+    emit("if-goto IF_FALSE%d\n", current_if_label());
 }
 
 void
-emitter_generate_after_if_statements() {
-    char* label1 = generate_if_label();
-    if_label_count++;
-    char* label2 = generate_if_label();
-    emit("goto %s\n", label2);
-    emit("label %s\n", label1);
-    free(label1);
-    free(label2);
+emitter_generate_if_without_else() {
+   emit("label IF_FALSE%d\n", pop_if_label());
 }
 
 void
-emitter_generate_after_optionalElse() {
-    char* label2 = generate_if_label();
-    emit("label %s\n", label2);
-    if_label_count++;
-    free(label2);
+emitter_generate_if_with_else() {
+    int label = current_if_label();
+    emit("goto IF_END%d\n", label);
+    emit("label IF_FALSE%d\n", label);
+}
+
+void
+emitter_generate_after_else() {
+    emit("label IF_END%d\n", pop_if_label());
 }
 
 void
 emitter_generate_while_expression(Expression* e) {
-    char* label1 = generate_while_label();
-    while_label_count++;
-    emit("label %s\n", label1);
+    push_while_label();
+    int label = current_while_label();
+    emit("label WHILE_EXP%d\n", label);
     emit_expression(e);
     emit("not\n");
-    char* label2 = generate_while_label();
-    emit("if-goto %s\n", label2);
-    free(label1);
-    free(label2);
+    emit("if-goto WHILE_END%d\n", label);
 }
 
 void
 emitter_generate_after_while_statements() {
-    while_label_count--;
-    char* label1 = generate_while_label();
-    while_label_count++;
-    char* label2 = generate_while_label();
-    while_label_count++;
-    emit("goto %s\n", label1);
-    emit("label %s\n", label2);
-    free(label1);
-    free(label2);
+    int label = current_while_label();
+    emit("goto WHILE_EXP%d\n", label);
+    emit("label WHILE_END%d\n", label);
+    pop_while_label();
 }
 
 void
@@ -264,11 +267,11 @@ emit_keywordconst_term(KeywordConstType type) {
     switch(type) {
         case KEYWORD_TRUE: {
             emit("push constant 0\n");
+            emit("not\n");
             break;
         }
         case KEYWORD_FALSE: {
             emit("push constant 0\n");
-            emit("not\n");
             break;
         }
         case KEYWORD_THIS: {
@@ -332,10 +335,10 @@ emit_indirect_call(SubroutineCall* call) {
     unsigned is_variable = is_in_symbol_table(call->caller);
     unsigned is_class = common_is_class_name(call->caller);
 
-    if (!is_variable && !is_class) {
-        printf("[Error]: %s:%d: Unrecognized symbol \"%s\".\n", FULL_SRC_PATH, yylineno, call->caller);
-        exit(1);
-    }
+    // if (!is_variable && !is_class) {
+    //     printf("[Error]: %s:%d: Unrecognized symbol \"%s\".\n", FULL_SRC_PATH, yylineno, call->caller);
+    //     exit(1);
+    // }
 
     if (is_variable) {
         emit_method_call(call);
@@ -434,6 +437,8 @@ emit_op(OperationType op) {
         case LESS_OP:    emit("lt\n"); break;
         case GREATER_OP: emit("gt\n"); break;
         case EQUAL_OP:   emit("eq\n"); break;
+        case MUL_OP:     emit("call Math.multiply 2\n"); break;
+        case DIV_OP:     emit("call Math.divide 2\n");   break;
         default: printf("Error: Unexpected operation type.\n"); exit(1);
     }
 }
@@ -488,20 +493,6 @@ get_expr_list_len(ExpressionList* list) {
     return i;
 }
 
-static char*
-generate_if_label() {
-    char* label = malloc(32);
-    snprintf(label, 32, "IF_LABEL_%d", if_label_count);
-    return label;
-}
-
-static char*
-generate_while_label() {
-    char* label = malloc(32);
-    snprintf(label, 32, "WHILE_LABEL_%d", while_label_count);
-    return label;
-}
-
 static void
 generate_constructor() {
     unsigned locals = routineSymtab_get_locals_count(ROUTINE_SYMTAB);
@@ -548,4 +539,56 @@ get_subroutine_full_name() {
 
     snprintf(full_name, len, "%s.%s", src_name, subroutine_name);
     return full_name;
+}
+
+// ───── If Label Stack Utility ─────
+static void push_if_label() {
+    if_label_counter;
+    if (++if_label_top >= MAX_NESTING) {
+        printf("[Error]: Too many nested ifs.\n");
+        exit(1);
+    }
+    if_label_stack[if_label_top] = if_label_counter++;
+}
+
+static int pop_if_label() {
+    if (if_label_top < 0) {
+        printf("[Error]: No if label to pop.\n");
+        exit(1);
+    }
+    return if_label_stack[if_label_top--];
+}
+
+static int current_if_label() {
+    if (if_label_top < 0) {
+        printf("[Error]: No current if label.\n");
+        exit(1);
+    }
+    return if_label_stack[if_label_top];
+}
+
+// ───── While Label Stack Utility ─────
+static void push_while_label() {
+    while_label_counter;
+    if (++while_label_top >= MAX_NESTING) {
+        printf("[Error]: Too many nested whiles.\n");
+        exit(1);
+    }
+    while_label_stack[while_label_top] = while_label_counter++;
+}
+
+static int pop_while_label() {
+    if (while_label_top < 0) {
+        printf("[Error]: No while label to pop.\n");
+        exit(1);
+    }
+    return while_label_stack[while_label_top--];
+}
+
+static int current_while_label() {
+    if (while_label_top < 0) {
+        printf("[Error]: No current while label.\n");
+        exit(1);
+    }
+    return while_label_stack[while_label_top];
 }

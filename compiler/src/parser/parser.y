@@ -181,7 +181,6 @@ classScope
             }
         ;
 
-
 subroutine
         : CONSTRUCTOR
             {
@@ -356,28 +355,35 @@ statement
         ;
 
 ifstatement
-        : ifExpression CLOSE_PAR OPEN_CURLY statements 
+        : if_header if_block
+        | if_header if_else_block ELSE OPEN_CURLY statements CLOSE_CURLY
             {
-                emitter_generate_after_if_statements();
-            }
-          CLOSE_CURLY optionalelse
-            {
-                emitter_generate_after_optionalElse();
+                emitter_generate_after_else();
             }
         ;
 
-ifExpression
-    : IF OPEN_PAR expression
-        {
-            emitter_generate_if_expression($3);
-            parserutil_free_if_expression($3);
-        }
-    ;
+if_header
+        : IF OPEN_PAR expression CLOSE_PAR
+            {
+                emitter_generate_if_expression($3);
+                parserutil_free_if_expression($3);
+            }
+        ;
 
-optionalelse
-            : ELSE OPEN_CURLY statements CLOSE_CURLY
-            | %empty
-            ;
+if_block
+        : OPEN_CURLY statements CLOSE_CURLY
+            {
+                emitter_generate_if_without_else();
+            }
+        ;
+
+if_else_block
+        : OPEN_CURLY statements CLOSE_CURLY
+            {
+                emitter_generate_if_with_else();
+            }
+        ;
+
 
 letstatement
             : LET varName optionalArrayExpression EQUAL expression SEMICOLON
@@ -525,6 +531,7 @@ directcall
         : subroutineName OPEN_PAR optionalExpressionList CLOSE_PAR
             {   
                 $$ = parserutil_create_direct_call($1, $3);
+                free($1);
             }
         ;
 
@@ -571,11 +578,11 @@ operation
             }
         | MULT
             {
-                $$ = UNDEFINED;
+                $$ = MUL_OP;
             }
         | DIV
             {
-                $$ = UNDEFINED;
+                $$ = DIV_OP;
             }
         | AND
             {

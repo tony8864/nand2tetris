@@ -1,6 +1,7 @@
 #include "symbol_table.h"
 #include "parser_util.h"
 
+#include <sys/stat.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +11,7 @@
 #define WORD_SIZE           16
 #define HACK_VARIABLE_BASE  16
 
+#define OUT_FOLDER "out"
 
 #define INCREMENT_INSTRUCTION() (instrNo++)
 
@@ -135,13 +137,18 @@ writeWord(char* word);
 void
 parserUtil_initialize(const char* filename) {
     table = symtab_initialize();
-
     installPredefinedSymbols();
 }
 
 void
-parserUtil_setOutputFile(const char* filename) {
-    if (!(outFile = fopen(filename, "w"))) {
+parserUtil_setOutputFile() {
+    mkdir(OUT_FOLDER, 0755);
+
+    size_t len = strlen(OUT_FOLDER) + strlen("exe.hack") + 2;
+    char* out_path = malloc(len);
+    snprintf(out_path, len, "%s/%s", OUT_FOLDER, "exe.hack");
+
+    if (!(outFile = fopen(out_path, "w"))) {
         printf("Error opening output file.\n");
         exit(1);
     }

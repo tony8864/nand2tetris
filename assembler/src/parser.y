@@ -82,19 +82,19 @@ COMPUTATION:    COMP        { $$ = $1; }
 
 int main(int argc, char** argv) {
 
-    if (argc == 3) {
+    if (argc == 2) {
         if (!(yyin = fopen(argv[1], "r"))) {
             printf("Cannot read file: %s\n", argv[1]);
             return 1;
         }
     }
     else {
-        printf("Usage: %s input.asm output.hack\n", argv[0]);
+        printf("Usage: %s input.asm\n", argv[0]);
         return 1;
     }
 
     parserUtil_initialize();
-    parserUtil_setOutputFile(argv[2]);
+    parserUtil_setOutputFile();
 
     parserUtil_setFirstPass();
     yyparse();

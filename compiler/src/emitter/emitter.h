@@ -6,15 +6,17 @@
 // -----------------------------------------------------------------------------
 // VM Code Generation for Statements
 // -----------------------------------------------------------------------------
-
 void
 emitter_generate_if_expression(Expression* e);
 
 void
-emitter_generate_after_if_statements();
+emitter_generate_if_without_else();
 
 void
-emitter_generate_after_optionalElse();
+emitter_generate_if_with_else();
+
+void
+emitter_generate_after_else();
 
 void
 emitter_generate_while_expression(Expression* e);
