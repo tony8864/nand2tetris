@@ -357,7 +357,7 @@ parserutil_create_method_call(char* caller, char* subroutineName, ExpressionList
 
 VarType*
 parserutil_create_var_type(VarTypeKind kind, char* name) {
-    check_if_name_is_valid_class(name);
+    //check_if_name_is_valid_class(name);
     VarType* type = safe_malloc(sizeof(VarType));
     type->kind = kind;
     type->className = name;
