@@ -1,12 +1,17 @@
 %{
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "common.h"
-
-#include "file_util.h"
+#include "function_codegen.h"
+#include "compute_codegen.h"
+#include "memory_codegen.h"
+#include "label_codegen.h"
+#include "codegen_util.h"
 #include "parser_util.h"
+#include "file_util.h"
+#include "common.h"
 
 int yyerror(char* errorMsg);
 int yylex(void);
@@ -58,16 +63,16 @@ line:   MEMORY_COMMAND
         | RETURN_COMMAND
         ;
 
-MEMORY_COMMAND  :   POP SEGMENT INTEGER         { vmparserUtil_handleMemoryOperation(MEM_POP, $2, $3);}
-                    |PUSH SEGMENT INTEGER       { vmparserUtil_handleMemoryOperation(MEM_PUSH, $2, $3);};
+MEMORY_COMMAND  :   POP SEGMENT INTEGER         { generate_memory_operation(OUT_FILE, MEM_POP, $2, $3);}
+                    |PUSH SEGMENT INTEGER       { generate_memory_operation(OUT_FILE, MEM_PUSH, $2, $3);};
 
-COMPUTE_COMMAND :   COMPUTE_CMD                 { vmparserUtil_handleComputeOperation($1);}
+COMPUTE_COMMAND :   COMPUTE_CMD                 { generate_compute_operation(OUT_FILE, $1);}
 
-LABEL_COMMAND   :   LABEL_CMD IDENTIFIER        { vmparserUtil_handleLabelOperation($1, $2);    free($2);}
+LABEL_COMMAND   :   LABEL_CMD IDENTIFIER        { generate_label_operation(OUT_FILE, $1, $2);    free($2);}
 
-FUNCTION_COMMAND:   FUNCTION IDENTIFIER INTEGER { vmparserUtil_handleFunctionOperation($2, $3); free($2);}
-CALL_COMMAND    :   CALL IDENTIFIER INTEGER     { vmparserUtil_handleCallOperation($2, $3);     free($2);}
-RETURN_COMMAND  :   RETURN                      { vmparserUtil_handleReturnOperation();}
+FUNCTION_COMMAND:   FUNCTION IDENTIFIER INTEGER { generate_function_operation(OUT_FILE, $2, $3); free($2);}
+CALL_COMMAND    :   CALL IDENTIFIER INTEGER     { generate_call_operation(OUT_FILE, $2, $3);      free($2);}
+RETURN_COMMAND  :   RETURN                      { generate_return_operation(OUT_FILE);}
 
 %%
 

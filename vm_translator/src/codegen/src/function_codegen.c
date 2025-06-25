@@ -173,7 +173,7 @@ generate_return_operation(FILE* out) {
 static char*
 create_return_address() {
     char* ret   = "$ret.";
-    char* func  = vm_context.current_function_name;
+    char* func = vm_context.current_function_name ? vm_context.current_function_name : "anonymous";
     char* count = int_to_str(vm_context.return_address_count);
 
     size_t size  = strlen(func) + strlen(ret) + strlen(count) + 1; // '\0' char
