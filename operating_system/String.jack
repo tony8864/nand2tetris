@@ -1,0 +1,128 @@
+class String {
+
+    field Array buffer;
+    field int buffer_len;
+    field int str_len;
+    
+    constructor String new(int maxLength) {
+        if (maxLength = 0) {
+            let maxLength = 1;
+        }
+        let buffer = Array.new(maxLength);
+        let buffer_len = maxLength;
+        let str_len = 0;
+        return this;
+    }
+
+    method void dispose() {
+        do Array.dispose(buffer);
+        return;
+    }
+
+    method int length() {
+        return str_len;
+    }
+
+    method char charAt(int i) {
+        return buffer[i];
+    }
+
+    method void setCharAt(int i, char c) {
+        let buffer[i] = c;
+        return;
+    }
+
+    method String appendChar(char c) {
+        if (str_len < buffer_len) {
+            let buffer[str_len] = c;
+            let str_len = str_len + 1;
+        }
+        return this;   
+    }
+
+    method void eraseLastChar() {
+        if (str_len > 0) {
+            let str_len = str_len - 1;
+        }
+        return;
+    }
+
+    method int intValue() {
+        if ((str_len > 0) & (buffer[0] = 45)) {
+            return -intValue_helper(1);
+        }
+        else {
+            return intValue_helper(0);
+        }
+    }
+
+    method int intValue_helper(int offset) {
+        var int i;
+        var int d;
+        var int val;
+
+        let val = 0;
+        let i = offset;
+        while (i < str_len) {
+            let d = charAt(i);
+            if (String.is_digit(d)) {
+                let d = String.to_digit(d);
+                let val = val * 10 + d; 
+            }
+            let i = i + 1;
+        }
+
+        return val;
+    }
+
+    function int to_digit(int val) {
+        return val - 48;
+    }
+
+    function boolean is_digit(int val) {
+        return (val > 47) & (val < 58);
+    }
+
+    method void setInt(int val) {
+        let str_len = 0;
+
+        if (val < 0) {
+            let val = -val;
+            do appendChar(45);
+        }
+
+        do setInt_nonnegative(val);
+        return;
+    }
+
+    method void setInt_nonnegative(int val) {
+        var int x;
+        var int lastDigit;
+
+        let x = val / 10;
+        let x = x * 10;
+
+        let lastDigit = val - x + 48;
+
+        if (val < 10) {
+            do appendChar(lastDigit);
+        }
+        else {
+            do setInt_nonnegative(val / 10);
+            do appendChar(lastDigit);
+        }
+        return;
+    }
+
+    function char newLine() {
+        return 128;
+    }
+
+    function char backSpace() {
+        return 129;
+    }
+
+    function char doubleQuote() {
+        return 34;
+    }
+}
