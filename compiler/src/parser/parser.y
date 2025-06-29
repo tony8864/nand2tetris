@@ -223,7 +223,7 @@ subroutineDeclaration
                             if ($3 != NULL) {
                                 parserutil_free_param_list($3);
                             }
-                            routineSymtab_print(ROUTINE_SYMTAB);
+                            //routineSymtab_print(ROUTINE_SYMTAB);
                             routineSymtab_free(ROUTINE_SYMTAB);
                             common_free_vartype($1);
                         }
@@ -660,7 +660,7 @@ int main(int argc, char** argv) {
     char**  files = FILEUTIL_list_files(input_folder, &count);
 
     FILEUTIL_collect_jack_class_names(files, count);
-    FILEUTIL_print_jack_class_names();
+    //FILEUTIL_print_jack_class_names();
 
     for (int i = 0; i < count; i++) {
         parse_file(files[i]);
@@ -683,7 +683,7 @@ set_debugging() {
 
 static void
 parse_file(char* filepath) {
-    printf("\n\tfile: %s\n", filepath);
+    //printf("\n\tfile: %s\n", filepath);
     prepare_compilation(filepath);
     yyparse();
     finalize_compilation();
@@ -699,8 +699,7 @@ prepare_compilation(char* filepath) {
 
 static void
 finalize_compilation() {
-    classSymtab_print(CLASS_SYMTAB);
-
+    //classSymtab_print(CLASS_SYMTAB);
     fclose(yyin);
     fclose(VM_FILE);
     free_global_context();

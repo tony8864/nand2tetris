@@ -1,0 +1,129 @@
+class Math {
+
+    static Array powerOfTwo;
+
+    function void init() {
+        let powerOfTwo = Array.new(16);
+
+        let powerOfTwo[0] = 1;
+        let powerOfTwo[1] = 2;
+        let powerOfTwo[2] = 4;
+        let powerOfTwo[3] = 8;
+        let powerOfTwo[4] = 16;
+        let powerOfTwo[5] = 32;
+        let powerOfTwo[6] = 64;
+        let powerOfTwo[7] = 128;
+        let powerOfTwo[8] = 256;
+        let powerOfTwo[9] = 512;
+        let powerOfTwo[10] = 1024;
+        let powerOfTwo[11] = 2048;
+        let powerOfTwo[12] = 4096;
+        let powerOfTwo[13] = 8192;
+        let powerOfTwo[14] = 16384;
+        let powerOfTwo[15] = 16384 + 16384;
+
+        return;
+    }
+
+    function int multiply(int x, int y) {
+        var int sum;
+        var int shiftedx;
+        var int i;
+
+        let sum = 0;
+        let shiftedx = x;
+        let i = 0;
+
+        while (i < 16) {
+
+        if (~((y & powerOfTwo[i]) = 0)) {
+                let sum = sum + shiftedx;
+            }
+
+            let shiftedx = shiftedx + shiftedx;
+
+            let i = i + 1;
+        }
+
+        return sum;
+    }
+
+    function int divide(int x, int y) {
+        var int is_neg_x, is_neg_y;
+        var int result;
+
+        let is_neg_x = x < 0;
+        let is_neg_y = y < 0;
+
+        let x = Math.abs(x);
+        let y = Math.abs(y);
+
+        let result = Math.divide_positives(x, y);
+
+        if (is_neg_x = is_neg_y) {
+            return result;
+        }
+
+        return -result;
+    }
+
+    function int divide_positives(int x, int y) {
+        var int q;
+
+        if (y > x) {
+            return 0;
+        }
+
+        let q = Math.divide(x, Math.multiply(2, y));
+
+        if ((x - Math.multiply(2, Math.multiply(q, y))) < y) {
+            return Math.multiply(2, q);
+        }
+        else {
+            return Math.multiply(2, q) + 1;
+        }
+    }
+
+    function int sqrt(int x) {
+        var int y;
+        var int j;
+        var int m;
+
+        let y = 0;
+        let j = 7;
+
+        while (~(j < 0)) {
+            let m = y + powerOfTwo[j];
+            let m = m * m;
+
+            if (~(m > x) & (m > 0)) {
+                let y = y + powerOfTwo[j];
+            }
+
+            let j = j - 1;
+        }
+
+        return y;
+    }
+
+    function int max(int a, int b) {
+        if (a > b) {
+            return a;
+        }
+        return b;
+    }
+
+    function int min(int a, int b) {
+        if (a < b) {
+            return a;
+        }
+        return b;
+    }
+
+    function int abs(int x) {
+        if (x < 0) {
+            return -x;
+        }
+        return x;
+    }
+}
